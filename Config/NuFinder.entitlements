@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- NuFinder intentionally remains unsandboxed: a general-purpose file
+         manager cannot operate on arbitrary user-selected paths inside the
+         App Sandbox without repeatedly losing Finder-equivalent access. -->
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>group.com.miguelrodriguez.NuFinder</string>
+    </array>
+</dict>
+</plist>
