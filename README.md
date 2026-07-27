@@ -9,6 +9,9 @@ Freeloader is a native, free, open-source file manager for macOS. It provides
 the file-management features that should not require a subscription—or a
 support group.
 
+[Website](https://kopitarfan.github.io/Freeloader/) ·
+[Download Freeloader 0.1.0](https://github.com/KopitarFan/Freeloader/releases/download/v0.1.0/Freeloader-0.1.0.dmg)
+
 ## Features
 
 - Editable address bar with autocomplete and `~` expansion
