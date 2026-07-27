@@ -13,7 +13,7 @@ enum WindowService {
         let controller = NSHostingController(rootView: root)
         let window = NSWindow(contentViewController: controller)
         window.setContentSize(NSSize(width: 1040, height: 680))
-        window.title = "NuFinder"
+        window.title = "Freeloader"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         window.center()
         window.makeKeyAndOrderFront(nil)

@@ -5,7 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         // A SwiftPM executable reaches didFinishLaunching before SwiftUI has
         // necessarily installed its WindowGroup. Activate on the next run-loop
-        // turn so `swift run NuFinder` reliably comes in front of Terminal.
+        // turn so `swift run Freeloader` reliably comes in front of Terminal.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             NSRunningApplication.current.activate(options: [.activateAllWindows])
             NSApp.activate(ignoringOtherApps: true)
@@ -28,7 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
-struct NuFinderApp: App {
+struct FreeloaderApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var browser = BrowserModel()
     @StateObject private var operations = FileOperationManager()

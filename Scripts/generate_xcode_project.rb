@@ -5,12 +5,12 @@ require "xcodeproj"
 require "fileutils"
 
 root = File.expand_path("..", __dir__)
-project_path = File.join(root, "NuFinder.xcodeproj")
+project_path = File.join(root, "Freeloader.xcodeproj")
 FileUtils.rm_rf(project_path)
 project = Xcodeproj::Project.new(project_path)
 
-app = project.new_target(:application, "NuFinder", :osx, "15.0")
-extension = project.new_target(:app_extension, "NuFinderFinderSync", :osx, "15.0")
+app = project.new_target(:application, "Freeloader", :osx, "15.0")
+extension = project.new_target(:app_extension, "FreeloaderFinderSync", :osx, "15.0")
 
 sources_group = project.main_group.new_group("Sources", "Sources/NuFinder")
 Dir.glob(File.join(root, "Sources/NuFinder/**/*.swift")).sort.each do |path|
@@ -27,6 +27,10 @@ config_group = project.main_group.new_group("Config", "Config")
   config_group.new_file(name)
 end
 
+assets_group = project.main_group.new_group("Assets", "Assets")
+assets_ref = assets_group.new_file("Assets.xcassets")
+app.resources_build_phase.add_file_reference(assets_ref)
+
 [app, extension].each do |target|
   target.build_configurations.each do |config|
     config.build_settings["SWIFT_VERSION"] = "6.0"
@@ -41,14 +45,15 @@ app.build_configurations.each do |config|
   config.build_settings["PRODUCT_BUNDLE_IDENTIFIER"] = "com.miguelrodriguez.NuFinder"
   config.build_settings["INFOPLIST_FILE"] = "Config/App-Info.plist"
   config.build_settings["CODE_SIGN_ENTITLEMENTS"] = "Config/NuFinder.entitlements"
-  config.build_settings["PRODUCT_NAME"] = "NuFinder"
+  config.build_settings["PRODUCT_NAME"] = "Freeloader"
+  config.build_settings["ASSETCATALOG_COMPILER_APPICON_NAME"] = "AppIcon"
 end
 
 extension.build_configurations.each do |config|
   config.build_settings["PRODUCT_BUNDLE_IDENTIFIER"] = "com.miguelrodriguez.NuFinder.FinderSync"
   config.build_settings["INFOPLIST_FILE"] = "Config/FinderSync-Info.plist"
   config.build_settings["CODE_SIGN_ENTITLEMENTS"] = "Config/FinderSync.entitlements"
-  config.build_settings["PRODUCT_NAME"] = "NuFinderFinderSync"
+  config.build_settings["PRODUCT_NAME"] = "FreeloaderFinderSync"
   config.build_settings["SKIP_INSTALL"] = "YES"
 end
 

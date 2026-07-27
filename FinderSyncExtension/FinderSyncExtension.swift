@@ -18,10 +18,10 @@ final class FinderSyncExtension: FIFinderSync {
     }
 
     override func menu(for menuKind: FIMenuKind) -> NSMenu? {
-        let menu = NSMenu(title: "NuFinder")
+        let menu = NSMenu(title: "Freeloader")
         let open = NSMenuItem(
-            title: "Open in NuFinder",
-            action: #selector(openInNuFinder),
+            title: "Open in Freeloader",
+            action: #selector(openInFreeloader),
             keyEquivalent: ""
         )
         open.target = self
@@ -29,10 +29,10 @@ final class FinderSyncExtension: FIFinderSync {
         return menu
     }
 
-    @objc private func openInNuFinder() {
+    @objc private func openInFreeloader() {
         guard let url = FIFinderSyncController.default().targetedURL() else { return }
         var components = URLComponents()
-        components.scheme = "nufinder"
+        components.scheme = "freeloader"
         components.host = "open"
         components.queryItems = [URLQueryItem(name: "path", value: url.path)]
         if let deepLink = components.url {

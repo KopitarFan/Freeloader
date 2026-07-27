@@ -4,3 +4,5 @@
 DerivedData/
 *.xcuserstate
 xcuserdata/
+.release/
+Website/

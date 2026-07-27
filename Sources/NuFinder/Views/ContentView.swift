@@ -55,7 +55,7 @@ struct ContentView: View {
         } message: {
             Text("Use {name} for the original name and {index} for numbering.")
         }
-        .alert("NuFinder", isPresented: Binding(
+        .alert("Freeloader", isPresented: Binding(
             get: { browser.errorMessage != nil },
             set: { if !$0 { browser.errorMessage = nil } }
         )) {

@@ -2,9 +2,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "NuFinder",
+    name: "Freeloader",
     platforms: [.macOS(.v15)],
-    products: [.executable(name: "NuFinder", targets: ["NuFinder"])],
+    products: [.executable(name: "Freeloader", targets: ["NuFinder"])],
     targets: [
         .executableTarget(
             name: "NuFinder",
