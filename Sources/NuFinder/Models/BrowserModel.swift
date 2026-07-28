@@ -113,7 +113,6 @@ final class BrowserModel: ObservableObject {
         customFavorites = UserDefaults.standard.stringArray(forKey: "customFavoritePaths")?
             .map { URL(fileURLWithPath: $0) }
             .filter { FileManager.default.fileExists(atPath: $0.path) } ?? []
-        FinderSyncBridge.updateMonitoredFolders(customFavorites)
         navigate(to: currentURL, addingHistory: false)
     }
 
@@ -1051,13 +1050,11 @@ final class BrowserModel: ObservableObject {
 
         customFavorites.append(candidate)
         UserDefaults.standard.set(customFavorites.map(\.path), forKey: "customFavoritePaths")
-        FinderSyncBridge.updateMonitoredFolders(customFavorites)
         return true
     }
 
     func removeFavorite(_ url: URL) {
         customFavorites.removeAll { $0.standardizedFileURL == url.standardizedFileURL }
         UserDefaults.standard.set(customFavorites.map(\.path), forKey: "customFavoritePaths")
-        FinderSyncBridge.updateMonitoredFolders(customFavorites)
     }
 }

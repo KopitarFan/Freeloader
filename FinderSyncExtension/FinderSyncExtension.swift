@@ -4,17 +4,11 @@ import FinderSync
 final class FinderSyncExtension: FIFinderSync {
     override init() {
         super.init()
-        // The host app writes intentionally monitored roots here in a future
-        // app-group-enabled distribution profile. Keep the initial extension
-        // scoped to the user's home folder rather than claiming every volume.
-        let paths = UserDefaults(suiteName: "group.com.miguelrodriguez.NuFinder")?
-            .stringArray(forKey: "finderSyncMonitoredPaths") ?? []
-        let configured = paths.map { URL(fileURLWithPath: $0) }
-        FIFinderSyncController.default().directoryURLs = Set(
-            configured.isEmpty
-                ? [FileManager.default.homeDirectoryForCurrentUser]
-                : configured
-        )
+        // Home-folder coverage provides the Finder context menu without
+        // requiring a shared App Group container or cross-app-data permission.
+        FIFinderSyncController.default().directoryURLs = [
+            FileManager.default.homeDirectoryForCurrentUser
+        ]
     }
 
     override func menu(for menuKind: FIMenuKind) -> NSMenu? {
