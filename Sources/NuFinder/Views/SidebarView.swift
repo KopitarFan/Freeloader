@@ -19,88 +19,97 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            List {
-                Section("Favorites") {
-                    ForEach(builtInFavorites, id: \.2) { title, icon, url in
-                        Button {
-                            browser.navigate(to: url)
-                        } label: {
-                            Label(title, systemImage: icon)
-                        }
-                        .buttonStyle(.plain)
-                        .dropDestination(for: URL.self) { urls, _ in
-                            moveDroppedItems(urls, to: url)
-                        } isTargeted: { targeted in
-                            scheduleSpringOpen(url, targeted: targeted)
-                        }
-                    }
-                    ForEach(browser.customFavorites, id: \.self) { url in
-                        Button {
-                            browser.navigate(to: url)
-                        } label: {
-                            Label(url.lastPathComponent, systemImage: "folder")
-                                .lineLimit(1)
-                        }
-                        .buttonStyle(.plain)
-                        .dropDestination(for: URL.self) { urls, _ in
-                            moveDroppedItems(urls, to: url)
-                        } isTargeted: { targeted in
-                            scheduleSpringOpen(url, targeted: targeted)
-                        }
-                        .contextMenu {
-                            Button("Remove from Favorites", role: .destructive) {
-                                browser.removeFavorite(url)
-                            }
-                        }
-                    }
-                }
-                .dropDestination(for: URL.self) { urls, _ in
-                    urls.reduce(false) { added, url in
-                        browser.addFavorite(url) || added
-                    }
-                } isTargeted: { _ in }
-                Section("Locations") {
-                    ForEach(volumes) { volume in
-                        HStack(spacing: 8) {
+            ScrollViewReader { proxy in
+                List {
+                    Section("Favorites") {
+                        ForEach(builtInFavorites, id: \.2) { title, icon, url in
                             Button {
-                                browser.navigate(to: volume.url)
+                                browser.navigate(to: url)
                             } label: {
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Label(volume.name, systemImage: volume.isRemovable ? "externaldrive" : "internaldrive")
-                                        .lineLimit(1)
-                                    if let fraction = volume.usedFraction {
-                                        ProgressView(value: fraction)
-                                            .controlSize(.mini)
-                                    }
-                                }
+                                Label(title, systemImage: icon)
                             }
                             .buttonStyle(.plain)
-                            Spacer(minLength: 2)
-                            if volume.isEjectable {
-                                Button {
-                                    requestEject(volume)
-                                } label: {
-                                    Image(systemName: "eject")
-                                }
-                                .buttonStyle(.borderless)
-                                .help("Eject \(volume.name)")
+                            .dropDestination(for: URL.self) { urls, _ in
+                                moveDroppedItems(urls, to: url)
+                            } isTargeted: { targeted in
+                                scheduleSpringOpen(url, targeted: targeted)
                             }
                         }
-                        .dropDestination(for: URL.self) { urls, _ in
-                            moveDroppedItems(urls, to: volume.url)
+                        ForEach(browser.customFavorites, id: \.self) { url in
+                            Button {
+                                browser.navigate(to: url)
+                            } label: {
+                                Label(url.lastPathComponent, systemImage: "folder")
+                                    .lineLimit(1)
+                            }
+                            .buttonStyle(.plain)
+                            .dropDestination(for: URL.self) { urls, _ in
+                                moveDroppedItems(urls, to: url)
+                            } isTargeted: { targeted in
+                                scheduleSpringOpen(url, targeted: targeted)
+                            }
+                            .contextMenu {
+                                Button("Remove from Favorites", role: .destructive) {
+                                    browser.removeFavorite(url)
+                                }
+                            }
+                        }
+                    }
+                    .dropDestination(for: URL.self) { urls, _ in
+                        urls.reduce(false) { added, url in
+                            browser.addFavorite(url) || added
+                        }
+                    } isTargeted: { _ in }
+                    Section("Locations") {
+                        ForEach(volumes) { volume in
+                            HStack(spacing: 8) {
+                                Button {
+                                    browser.navigate(to: volume.url)
+                                } label: {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Label(volume.name, systemImage: volume.isRemovable ? "externaldrive" : "internaldrive")
+                                            .lineLimit(1)
+                                        if let fraction = volume.usedFraction {
+                                            ProgressView(value: fraction)
+                                                .controlSize(.mini)
+                                        }
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                                Spacer(minLength: 2)
+                                if volume.isEjectable {
+                                    Button {
+                                        requestEject(volume)
+                                    } label: {
+                                        Image(systemName: "eject")
+                                    }
+                                    .buttonStyle(.borderless)
+                                    .help("Eject \(volume.name)")
+                                }
+                            }
+                            .dropDestination(for: URL.self) { urls, _ in
+                                moveDroppedItems(urls, to: volume.url)
+                            }
+                        }
+                    }
+                    if browser.showsTree {
+                        Section("Folders") {
+                            FolderTreeNode(
+                                url: treeRoot,
+                                focusedURL: browser.currentURL,
+                                initiallyExpanded: true
+                            )
                         }
                     }
                 }
-                if browser.showsTree {
-                    Section("Folders") {
-                        FolderTreeNode(
-                            url: FileManager.default.homeDirectoryForCurrentUser,
-                            initiallyExpanded: true
-                        )
-                    }
+                .listStyle(.sidebar)
+                .onChange(of: browser.showsTree) { _, visible in
+                    if visible { scrollToCurrentFolder(using: proxy) }
+                }
+                .onChange(of: browser.currentURL) { _, _ in
+                    if browser.showsTree { scrollToCurrentFolder(using: proxy) }
                 }
             }
-            .listStyle(.sidebar)
 
             Divider()
             Toggle(isOn: $browser.showsTree) {
@@ -129,6 +138,31 @@ struct SidebarView: View {
             Button("Cancel", role: .cancel) { pendingEject = nil }
         } message: {
             Text("Ejecting now may interrupt a file operation using this drive.")
+        }
+    }
+
+    private var treeRoot: URL {
+        let current = browser.currentURL.standardizedFileURL
+        let home = FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL
+        if current.path == home.path || current.path.hasPrefix(home.path + "/") {
+            return home
+        }
+        return volumes
+            .map(\.url)
+            .filter { current.path == $0.path || current.path.hasPrefix($0.path + "/") }
+            .max { $0.path.count < $1.path.count }?
+            .standardizedFileURL ?? URL(fileURLWithPath: "/")
+    }
+
+    private func scrollToCurrentFolder(using proxy: ScrollViewProxy) {
+        let target = browser.currentURL.standardizedFileURL
+        Task { @MainActor in
+            // Disclosure levels load successively; give the path a moment to
+            // materialize before centering the selected row.
+            try? await Task.sleep(for: .milliseconds(250))
+            withAnimation(.easeInOut(duration: 0.2)) {
+                proxy.scrollTo(target, anchor: .center)
+            }
         }
     }
 
@@ -221,19 +255,21 @@ private struct FolderTreeNode: View {
     @EnvironmentObject private var browser: BrowserModel
     @EnvironmentObject private var operations: FileOperationManager
     let url: URL
+    let focusedURL: URL
     @State private var expanded = false
     @State private var children: [URL] = []
     @State private var springExpandTask: Task<Void, Never>?
 
-    init(url: URL, initiallyExpanded: Bool = false) {
+    init(url: URL, focusedURL: URL, initiallyExpanded: Bool = false) {
         self.url = url
-        _expanded = State(initialValue: initiallyExpanded)
+        self.focusedURL = focusedURL
+        _expanded = State(initialValue: initiallyExpanded || Self.isAncestor(url, of: focusedURL))
     }
 
     var body: some View {
         DisclosureGroup(isExpanded: $expanded) {
             ForEach(children, id: \.self) { child in
-                FolderTreeNode(url: child)
+                FolderTreeNode(url: child, focusedURL: focusedURL)
             }
         } label: {
             Button {
@@ -242,6 +278,14 @@ private struct FolderTreeNode: View {
                 Label(url.lastPathComponent.isEmpty ? url.path : url.lastPathComponent,
                       systemImage: "folder")
                     .lineLimit(1)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(
+                        url.standardizedFileURL == focusedURL.standardizedFileURL
+                            ? Color.accentColor.opacity(0.24)
+                            : .clear,
+                        in: RoundedRectangle(cornerRadius: 5)
+                    )
             }
             .buttonStyle(.plain)
             .dropDestination(for: URL.self) { urls, _ in
@@ -260,9 +304,24 @@ private struct FolderTreeNode: View {
         .onChange(of: expanded) { _, isExpanded in
             if isExpanded && children.isEmpty { loadChildren() }
         }
+        .onChange(of: focusedURL) { _, destination in
+            if Self.isAncestor(url, of: destination) {
+                expanded = true
+                if children.isEmpty { loadChildren() }
+            }
+        }
         .onAppear {
             if expanded && children.isEmpty { loadChildren() }
         }
+        .id(url.standardizedFileURL)
+    }
+
+    private static func isAncestor(_ candidate: URL, of destination: URL) -> Bool {
+        let candidatePath = candidate.standardizedFileURL.path
+        let destinationPath = destination.standardizedFileURL.path
+        return candidatePath == "/" ||
+            candidatePath == destinationPath ||
+            destinationPath.hasPrefix(candidatePath + "/")
     }
 
     private func loadChildren() {
@@ -271,7 +330,7 @@ private struct FolderTreeNode: View {
             includingPropertiesForKeys: [.isDirectoryKey],
             options: [.skipsHiddenFiles, .skipsPackageDescendants]
         )) ?? [])
-        .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true }
+        .filter { FileItem.load($0)?.isDirectory == true }
         .sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
     }
 

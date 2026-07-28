@@ -6,6 +6,7 @@ struct FileItem: Identifiable, Hashable, Sendable {
     let url: URL
     let name: String
     let isDirectory: Bool
+    let isSymbolicLink: Bool
     let size: Int64
     let modified: Date?
     let created: Date?
@@ -16,18 +17,29 @@ struct FileItem: Identifiable, Hashable, Sendable {
     static func load(_ url: URL) -> FileItem? {
         let keys: Set<URLResourceKey> = [
             .isDirectoryKey, .fileSizeKey, .contentModificationDateKey,
-            .creationDateKey, .localizedTypeDescriptionKey, .isHiddenKey
+            .creationDateKey, .localizedTypeDescriptionKey, .isHiddenKey,
+            .isSymbolicLinkKey
         ]
         guard let values = try? url.resourceValues(forKeys: keys) else { return nil }
+        let isSymbolicLink = values.isSymbolicLink ?? false
+        let isDirectory = values.isDirectory == true ||
+            (isSymbolicLink && isNavigableDirectory(url.resolvingSymlinksInPath()))
         return FileItem(
             url: url,
             name: url.lastPathComponent,
-            isDirectory: values.isDirectory ?? false,
+            isDirectory: isDirectory,
+            isSymbolicLink: isSymbolicLink,
             size: Int64(values.fileSize ?? 0),
             modified: values.contentModificationDate,
             created: values.creationDate,
-            kind: values.localizedTypeDescription ?? (values.isDirectory == true ? "Folder" : "File")
+            kind: values.localizedTypeDescription ?? (isDirectory ? "Folder" : "File")
         )
+    }
+
+    static func isNavigableDirectory(_ url: URL) -> Bool {
+        var isDirectory: ObjCBool = false
+        return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) &&
+            isDirectory.boolValue
     }
 
     var icon: NSImage {

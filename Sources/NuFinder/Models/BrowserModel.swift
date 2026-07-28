@@ -121,7 +121,11 @@ final class BrowserModel: ObservableObject {
     var canPaste: Bool { !clipboard.isEmpty }
 
     func navigate(to rawURL: URL, addingHistory: Bool = true) {
-        let url = rawURL.standardizedFileURL
+        // Foundation can identify a symlink-to-folder but still reject
+        // contentsOfDirectory(at:) when handed the link URL. Browse the
+        // canonical target so loading, watching, breadcrumbs, and Go Up all
+        // operate on the real directory.
+        let url = rawURL.resolvingSymlinksInPath().standardizedFileURL
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory),
               isDirectory.boolValue else {

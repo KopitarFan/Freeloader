@@ -109,7 +109,7 @@ struct AddressBarView: View {
 
         let directoryMatches = children
             .filter {
-                (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true &&
+                FileItem.load($0)?.isDirectory == true &&
                 (prefix.isEmpty || $0.lastPathComponent.localizedCaseInsensitiveContains(prefix))
             }
             .sorted {
