@@ -14,7 +14,14 @@ struct TransferDetailsView: View {
                     }
                 }
                 .frame(width: 190)
+                Picker("Concurrent", selection: $operations.maxConcurrentOperations) {
+                    ForEach(1...4, id: \.self) { count in
+                        Text("\(count)").tag(count)
+                    }
+                }
+                .frame(width: 110)
                 Spacer()
+                Button("Clear Completed") { operations.clearCompleted() }
                 Button("Done") { operations.showsDetails = false }
                     .keyboardShortcut(.defaultAction)
             }
@@ -47,7 +54,26 @@ struct TransferDetailsView: View {
                         if let error = operation.error {
                             Text(error).font(.caption).foregroundStyle(.red)
                         }
-                        if operation.finishedAt == nil {
+                        if operation.isQueued {
+                            HStack {
+                                Label("Queued", systemImage: "clock")
+                                Spacer()
+                                Button {
+                                    operations.moveQueued(operation.id, by: -1)
+                                } label: {
+                                    Image(systemName: "arrow.up")
+                                }
+                                Button {
+                                    operations.moveQueued(operation.id, by: 1)
+                                } label: {
+                                    Image(systemName: "arrow.down")
+                                }
+                                Button("Cancel", role: .destructive) {
+                                    operations.cancel(operation.id)
+                                }
+                            }
+                            .controlSize(.small)
+                        } else if operation.finishedAt == nil {
                             HStack {
                                 Button(operation.isPaused ? "Resume" : "Pause") {
                                     operations.togglePause(operation.id)
@@ -57,6 +83,9 @@ struct TransferDetailsView: View {
                                 }
                             }
                             .controlSize(.small)
+                        } else if operation.error != nil || operation.isCancelled {
+                            Button("Retry") { operations.retry(operation.id) }
+                                .controlSize(.small)
                         }
                     }
                     .padding(.vertical, 5)
@@ -72,6 +101,9 @@ struct TransferDetailsView: View {
         if operation.error != nil {
             Label("Failed", systemImage: "exclamationmark.triangle.fill")
                 .foregroundStyle(.red)
+        } else if operation.isQueued {
+            Label("Queued", systemImage: "clock")
+                .foregroundStyle(.secondary)
         } else if operation.isCancelled {
             Label("Cancelled", systemImage: "xmark.circle.fill")
                 .foregroundStyle(.orange)

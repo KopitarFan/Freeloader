@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
@@ -13,6 +14,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 window.makeKeyAndOrderFront(nil)
             }
         }
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(windowWillClose(_:)),
+            name: NSWindow.willCloseNotification,
+            object: nil
+        )
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow,
+              window.isVisible,
+              let url = window.representedURL,
+              url.isFileURL else { return }
+        WindowService.recordClosedWindow(at: url)
     }
 
     func applicationShouldHandleReopen(
@@ -32,6 +51,8 @@ struct FreeloaderApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var browser = BrowserModel()
     @StateObject private var operations = FileOperationManager()
+    @AppStorage("shortcut.commandPalette") private var commandPaletteKey = "p"
+    @AppStorage("shortcut.terminal") private var terminalKey = "t"
 
     var body: some Scene {
         WindowGroup {
@@ -48,19 +69,30 @@ struct FreeloaderApp: App {
                     .disabled(!browser.canUndo)
             }
             CommandGroup(replacing: .pasteboard) {
-                Button("Cut") { browser.cutSelection() }
+                Button("Cut") {
+                    if !sendTextCommand(#selector(NSText.cut(_:))) {
+                        browser.cutSelection()
+                    }
+                }
                     .keyboardShortcut("x")
-                    .disabled(browser.selection.isEmpty)
-                Button("Copy") { browser.copySelection() }
+                Button("Copy") {
+                    if !sendTextCommand(#selector(NSText.copy(_:))) {
+                        browser.copySelection()
+                    }
+                }
                     .keyboardShortcut("c")
-                    .disabled(browser.selection.isEmpty)
                 Button("Paste") {
-                    Task { await browser.paste(into: browser.currentURL, operations: operations) }
+                    if !sendTextCommand(#selector(NSText.paste(_:))) {
+                        Task { await browser.paste(into: browser.currentURL, operations: operations) }
+                    }
                 }
                 .keyboardShortcut("v")
-                .disabled(!browser.canPaste)
                 Divider()
-                Button("Select All") { browser.selectAll() }
+                Button("Select All") {
+                    if !sendTextCommand(#selector(NSText.selectAll(_:))) {
+                        browser.selectAll()
+                    }
+                }
                     .keyboardShortcut("a")
                 Button("Invert Selection") { browser.invertSelection() }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
@@ -81,6 +113,9 @@ struct FreeloaderApp: App {
                 Button("Reopen Closed Tab") { browser.reopenClosedTab() }
                     .keyboardShortcut("t", modifiers: [.command, .shift])
                     .disabled(!browser.canReopenClosedTab)
+                Button("Reopen Closed Window") { WindowService.reopenLastClosedWindow() }
+                    .keyboardShortcut("n", modifiers: [.command, .shift])
+                    .disabled(!WindowService.canReopenClosedWindow)
                 Button("Go to Folder…") { browser.requestAddressFocus() }
                     .keyboardShortcut("g", modifiers: [.command, .shift])
                 Divider()
@@ -89,7 +124,7 @@ struct FreeloaderApp: App {
                 Button("New Folder") { browser.showsNewFolderPrompt = true }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                 Button("Open in Terminal") { TerminalService.open(at: browser.currentURL) }
-                    .keyboardShortcut("t", modifiers: [.command, .option])
+                    .keyboardShortcut(shortcutKey(terminalKey, fallback: "t"), modifiers: [.command, .option])
                 Button("Duplicate") {
                     Task { await browser.duplicateSelection(using: operations) }
                 }
@@ -145,9 +180,23 @@ struct FreeloaderApp: App {
                 Button("Enclosing Folder") { browser.goUp() }
                     .keyboardShortcut(.upArrow, modifiers: .command)
             }
+            CommandMenu("Commands") {
+                Button("Command Palette…") { browser.showsCommandPalette = true }
+                    .keyboardShortcut(shortcutKey(commandPaletteKey, fallback: "p"), modifiers: [.command, .shift])
+            }
         }
         Settings {
             SettingsView()
         }
+    }
+
+    private func shortcutKey(_ value: String, fallback: Character) -> KeyEquivalent {
+        KeyEquivalent(value.first ?? fallback)
+    }
+
+    @MainActor
+    private func sendTextCommand(_ selector: Selector) -> Bool {
+        guard NSApp.keyWindow?.firstResponder is NSTextView else { return false }
+        return NSApp.sendAction(selector, to: nil, from: nil)
     }
 }

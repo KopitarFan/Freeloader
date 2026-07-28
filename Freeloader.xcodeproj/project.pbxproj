@@ -7,58 +7,69 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		04896F8E4E8A66ED8A6520F3 /* FileListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0C5118F9E10ED9D75B9E8CB /* FileListView.swift */; };
-		0B06267E529DBF79C21E6100 /* NuFinderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33135F0B67B25DB15B9BCFDC /* NuFinderApp.swift */; };
-		126919414BA288FB7203AB7D /* BreadcrumbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FBE68A3C3DE47BA804F78A /* BreadcrumbView.swift */; };
-		13043FF1445922C5346B7731 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3E97262B582A3F9F7A96561 /* Cocoa.framework */; };
-		17AA25D4F8B20CE5D0DE8373 /* FreeloaderFinderSync.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = D94AEE8FC2C7A5B30E83FD8D /* FreeloaderFinderSync.appex */; };
-		207054C159F8A40E9D6B12CA /* TerminalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939A45FC53D39F695657106F /* TerminalService.swift */; };
-		2D3B5B36751E9D8E5789E7B0 /* WindowService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90C4F4A5C58CD9E9CCF7FEE /* WindowService.swift */; };
-		328AF1BB15B388E12010B13B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 96598B1ABACD5077E64BC938 /* Assets.xcassets */; };
-		3315FA7B2B62A71D0954C1B2 /* FileOperationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D9B3CD4A8E76339AFC0A70B /* FileOperationManager.swift */; };
-		425FF556D33652033502BFD7 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8E9CB53FFC28690E3A6195 /* SidebarView.swift */; };
-		4C9BF7408DD18E7262BD1A3F /* FileMetadataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF284D7F4EFF33F98A8EF37A /* FileMetadataService.swift */; };
-		52E8340A1DDA05508B52F7E1 /* TabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0906C595EF861439BF56BD /* TabBarView.swift */; };
-		61FCCEF59EAD76C97C11D010 /* AddressBarRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 108917BDE4ACF16A8BC3F4E2 /* AddressBarRow.swift */; };
-		650AF476C8A94B7C6173C7DF /* SpotlightSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF460775FE068D10C606779E /* SpotlightSearchService.swift */; };
-		6D96B252E842EB4EB81DEBAC /* MetadataEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC3BD3A1FAD74E484588E8 /* MetadataEditorView.swift */; };
-		968BB42C1B7CCAF41BBCF7E1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EE187D50288D71440A37E4 /* ContentView.swift */; };
-		9CA05F2055FB8D8A3F1EFA8F /* ChunkedFileCopier.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E0D4D4BAF849523AC3920D /* ChunkedFileCopier.swift */; };
-		A0071397C78A9AFB508538B3 /* DirectoryWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = E095478F771C916B1279824F /* DirectoryWatcher.swift */; };
-		A768ADA91DE8800DF7E50E85 /* SortMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4870E456C657B820DCA0C938 /* SortMenu.swift */; };
-		B4FBC6B21EF7CF7B9570AE2F /* SearchBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37DCD606038DC9429CD48C3 /* SearchBarView.swift */; };
-		C676C5DB3C4426A89BC89CD9 /* BrowserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD8C3DFCD508439EE9CE62A /* BrowserModel.swift */; };
-		C88D2D1593845441566B6A31 /* FileInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8E912C00F58A76D697BCD84 /* FileInfoView.swift */; };
-		C8F19EAA312BA5F316A2CF69 /* FinderSyncExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D2553FA71B9BE58A77ADAF /* FinderSyncExtension.swift */; };
-		C96258699339A2B779AD450E /* QuickLookService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7173601B83B7F327DE21DC3 /* QuickLookService.swift */; };
-		CD7E8FE464739BF313488D3C /* FinderSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4212FC1390F2455BA2C54D7 /* FinderSyncBridge.swift */; };
-		DCC1E21FAB9EA9C95F57C8F9 /* TransferDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E172E7BBDC2B65B3BDC37E /* TransferDetailsView.swift */; };
-		DD2E9907F6E7E4D489572A2E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3E97262B582A3F9F7A96561 /* Cocoa.framework */; };
-		E49C62E8B19C295FE63DE965 /* OperationJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1036F70F7326F838CB71F9EB /* OperationJournal.swift */; };
-		E72EC4BE672502068469E24D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442E9B762C837E176B387CC5 /* SettingsView.swift */; };
-		ED79F06887728F38804448BF /* AddressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11678C9C9947485B4B6AF3A6 /* AddressBarView.swift */; };
-		F1B9ECA713FE90FC54AB6C9C /* FileActionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399294F5726014C856D64C18 /* FileActionService.swift */; };
-		F88792D7F448CD9A3E3806B1 /* FileItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32126F5DF570533E226040C3 /* FileItem.swift */; };
+		01F3D6E89A45FA4062186DB7 /* QuickLookService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8D2E7F58F5B397B355A945F /* QuickLookService.swift */; };
+		10E18412B5027BF7F112681B /* SortMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17581E89CBF9AE51682A35FC /* SortMenu.swift */; };
+		127DA9968936E5207914F016 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 346404740A2D2EEAB5784C02 /* Cocoa.framework */; };
+		158393A58EDE4D5EEADC401A /* TemplateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D61F146260B1B1B82EF7991 /* TemplateService.swift */; };
+		1FDC029D1FED7F60F4BA50E1 /* TabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790A5283161DBC99AA327B86 /* TabBarView.swift */; };
+		25C27192F21CA533F62F410A /* TerminalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D634383853E4CC140CE26ED0 /* TerminalService.swift */; };
+		26BB470CE27A154E07399A5F /* TransferDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651FE6A9E337D09823A75824 /* TransferDetailsView.swift */; };
+		2818E5A0196F58A506D12DF7 /* BatchRenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3503F98824AD4732F12EF1EC /* BatchRenameView.swift */; };
+		3052F8AB27BDFE1A42FA183A /* FinderSyncExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457D7E53381E5DA1D80F93BD /* FinderSyncExtension.swift */; };
+		329E85777842CBE5E12EF3D4 /* ImagePreviewPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFBDC14D0D4458C18FED7F9F /* ImagePreviewPane.swift */; };
+		33AA3FB1E5E119704F2554FE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 346404740A2D2EEAB5784C02 /* Cocoa.framework */; };
+		34ADDD44B6BACE65FEAC7C69 /* FileActionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830192125793852BC91425E4 /* FileActionService.swift */; };
+		4076651AC885C6565EC9F885 /* WindowService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C888243CEAE64575D8B257C6 /* WindowService.swift */; };
+		4B35B013C56B3D228659791C /* FolderSizeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7479B72CFC17DD390F98511D /* FolderSizeText.swift */; };
+		4BFE57C350C3FBDE2E4CC643 /* NuFinderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C885EE57A50363802FCD0D /* NuFinderApp.swift */; };
+		61B535713B7A413FCE0688EE /* FileMetadataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69AE0B2707F696C023473E5D /* FileMetadataService.swift */; };
+		6D652D051DC7B8F2CF6243BE /* DirectoryWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAD9A22AB829089D7EF99C3 /* DirectoryWatcher.swift */; };
+		7129CB41DBBC96CA59358BD2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB1023170ACDCA9DBFF8DCD /* SettingsView.swift */; };
+		819A374D06E0AF9ACDA1838D /* GitStatusService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFEA4379F2E76F0968309B00 /* GitStatusService.swift */; };
+		8B2939F47208438722E6B581 /* FileInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34EB9CF346AD13BA786EE875 /* FileInfoView.swift */; };
+		93475AD7D74CD815F01DB9D1 /* FileItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C1A6B54D5B2F0C5A4B0D751 /* FileItem.swift */; };
+		96821FBC84F1E9F62118F59E /* FileOperationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DF5211DC4BAA1E601FC322 /* FileOperationManager.swift */; };
+		9DBED984EFE0DFBCCE6C2075 /* FreeloaderFinderSync.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C534B0FE2A4D213840B88B5C /* FreeloaderFinderSync.appex */; };
+		9E94AA2B27F0BDAC83AF92F9 /* GitStatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD985255C2A4B73281C75DA /* GitStatusBadge.swift */; };
+		9F3BE9ECFEB039E61097E63C /* MetadataEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B079110FA24E937324417007 /* MetadataEditorView.swift */; };
+		A0F6F58813337897954F8175 /* AddressBarRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633827D43D2901B939D7A6AB /* AddressBarRow.swift */; };
+		A13A1086EBEF6958DEBDB23C /* ChunkedFileCopier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCADF7AF330295A65604589 /* ChunkedFileCopier.swift */; };
+		A24169995A9AD890E6036C8A /* AddressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE108F12085B6A7CFC27DBAC /* AddressBarView.swift */; };
+		A651878101A9DA9E63C70FD1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0678F0A2BB37C0F8329D5FE /* ContentView.swift */; };
+		A86975468A5C3C44C68C6E68 /* BrowserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3CFC5C7FFB65079E827B22 /* BrowserModel.swift */; };
+		C3E457840201581A13F709E0 /* OperationJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B3C79B3067526D761A5F1EA /* OperationJournal.swift */; };
+		C6A6E20D29B611EBC41AA8BA /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D2420B257FBBDB9135CE2B /* SidebarView.swift */; };
+		CE4762C0B38EC1415A730179 /* ArchiveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ABE9EA9F1D4DBDDDC078A71 /* ArchiveService.swift */; };
+		CFAFC50CC2CE7B0CB6ADE38D /* CommandPaletteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858CA11FB5C31F3545D77140 /* CommandPaletteView.swift */; };
+		D0B88B95CFD81009578D9C0E /* SearchBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D3DB0E9C3E808C34DA7FAE /* SearchBarView.swift */; };
+		DA5E26BA70F4B6EB4B38C580 /* FileListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FC9FDEA7EC4EBAADE6F8FD8 /* FileListView.swift */; };
+		DCC1E08B7223C30070E25A71 /* FinderSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADCDE2A0F27852CFA8A84B94 /* FinderSyncBridge.swift */; };
+		DE39DF6BE519BE3C6050FFD3 /* FolderSizeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049C403ECB4009AF03ADC94F /* FolderSizeService.swift */; };
+		E147FE77A0078D0D5A8C37E0 /* ThumbnailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82837DB81136CAB2F3EEC281 /* ThumbnailService.swift */; };
+		EEB3D1D66EB65620C6CC301A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4496CF9BFBD49E3F2473148F /* Assets.xcassets */; };
+		F390E091280E631E247FFA26 /* SpotlightSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5764F87163B13B04E7332522 /* SpotlightSearchService.swift */; };
+		F91CCD09B5BEA19FA7FA5626 /* FileThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B6FC2CEF19419293DE6B81 /* FileThumbnailView.swift */; };
+		FDF41C79A2236A7CDA42892B /* BreadcrumbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 447AAC5BF5CF76ABB31FE0DD /* BreadcrumbView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		CF3E49D0584007C1DB4EBF7F /* PBXContainerItemProxy */ = {
+		79B2E769BE9A0207EC4B8F63 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 618F9F5883C47D74CA66AD4E /* Project object */;
+			containerPortal = 3D50230669A467A872B3D9B7 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 9AFD941AFC114F3769B552B4;
+			remoteGlobalIDString = 7076F64793B7C04962432C62;
 			remoteInfo = FreeloaderFinderSync;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		7D0C5953E8E9576355710574 /* Embed App Extensions */ = {
+		28C157236D60F5748A55075A /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				17AA25D4F8B20CE5D0DE8373 /* FreeloaderFinderSync.appex in Embed App Extensions */,
+				9DBED984EFE0DFBCCE6C2075 /* FreeloaderFinderSync.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -66,176 +77,217 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		05E172E7BBDC2B65B3BDC37E /* TransferDetailsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TransferDetailsView.swift; path = Views/TransferDetailsView.swift; sourceTree = "<group>"; };
-		1036F70F7326F838CB71F9EB /* OperationJournal.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OperationJournal.swift; path = Services/OperationJournal.swift; sourceTree = "<group>"; };
-		108917BDE4ACF16A8BC3F4E2 /* AddressBarRow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AddressBarRow.swift; path = Views/AddressBarRow.swift; sourceTree = "<group>"; };
-		114D97D858DBCED24C3DDDC2 /* FinderSync-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "FinderSync-Info.plist"; sourceTree = "<group>"; };
-		11678C9C9947485B4B6AF3A6 /* AddressBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AddressBarView.swift; path = Views/AddressBarView.swift; sourceTree = "<group>"; };
-		2AFC3BD3A1FAD74E484588E8 /* MetadataEditorView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MetadataEditorView.swift; path = Views/MetadataEditorView.swift; sourceTree = "<group>"; };
-		32126F5DF570533E226040C3 /* FileItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileItem.swift; path = Models/FileItem.swift; sourceTree = "<group>"; };
-		33135F0B67B25DB15B9BCFDC /* NuFinderApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NuFinderApp.swift; sourceTree = "<group>"; };
-		399294F5726014C856D64C18 /* FileActionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileActionService.swift; path = Services/FileActionService.swift; sourceTree = "<group>"; };
-		3DD8C3DFCD508439EE9CE62A /* BrowserModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BrowserModel.swift; path = Models/BrowserModel.swift; sourceTree = "<group>"; };
-		442E9B762C837E176B387CC5 /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
-		4870E456C657B820DCA0C938 /* SortMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SortMenu.swift; path = Views/SortMenu.swift; sourceTree = "<group>"; };
-		4F0906C595EF861439BF56BD /* TabBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TabBarView.swift; path = Views/TabBarView.swift; sourceTree = "<group>"; };
-		8D9B3CD4A8E76339AFC0A70B /* FileOperationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileOperationManager.swift; path = Services/FileOperationManager.swift; sourceTree = "<group>"; };
-		939A45FC53D39F695657106F /* TerminalService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TerminalService.swift; path = Services/TerminalService.swift; sourceTree = "<group>"; };
-		96598B1ABACD5077E64BC938 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A5FBE68A3C3DE47BA804F78A /* BreadcrumbView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BreadcrumbView.swift; path = Views/BreadcrumbView.swift; sourceTree = "<group>"; };
-		B2B0CCAEE823C4A9EC6F7CD0 /* FinderSync.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = FinderSync.entitlements; sourceTree = "<group>"; };
-		B3D2553FA71B9BE58A77ADAF /* FinderSyncExtension.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FinderSyncExtension.swift; sourceTree = "<group>"; };
-		B8E912C00F58A76D697BCD84 /* FileInfoView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileInfoView.swift; path = Views/FileInfoView.swift; sourceTree = "<group>"; };
-		C0E0D4D4BAF849523AC3920D /* ChunkedFileCopier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ChunkedFileCopier.swift; path = Services/ChunkedFileCopier.swift; sourceTree = "<group>"; };
-		C4212FC1390F2455BA2C54D7 /* FinderSyncBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FinderSyncBridge.swift; path = Services/FinderSyncBridge.swift; sourceTree = "<group>"; };
-		C43C66F756E3B76865329A16 /* Freeloader.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Freeloader.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D37DCD606038DC9429CD48C3 /* SearchBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SearchBarView.swift; path = Views/SearchBarView.swift; sourceTree = "<group>"; };
-		D7173601B83B7F327DE21DC3 /* QuickLookService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuickLookService.swift; path = Services/QuickLookService.swift; sourceTree = "<group>"; };
-		D90C4F4A5C58CD9E9CCF7FEE /* WindowService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WindowService.swift; path = Services/WindowService.swift; sourceTree = "<group>"; };
-		D94AEE8FC2C7A5B30E83FD8D /* FreeloaderFinderSync.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FreeloaderFinderSync.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		DD9D5357E82317F658B8D3C5 /* NuFinder.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = NuFinder.entitlements; sourceTree = "<group>"; };
-		DFA2C5C199290BC57C5CF523 /* App-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "App-Info.plist"; sourceTree = "<group>"; };
-		E095478F771C916B1279824F /* DirectoryWatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DirectoryWatcher.swift; path = Services/DirectoryWatcher.swift; sourceTree = "<group>"; };
-		E3E97262B582A3F9F7A96561 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
-		E6EE187D50288D71440A37E4 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = Views/ContentView.swift; sourceTree = "<group>"; };
-		EC8E9CB53FFC28690E3A6195 /* SidebarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SidebarView.swift; path = Views/SidebarView.swift; sourceTree = "<group>"; };
-		EF460775FE068D10C606779E /* SpotlightSearchService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SpotlightSearchService.swift; path = Services/SpotlightSearchService.swift; sourceTree = "<group>"; };
-		F0C5118F9E10ED9D75B9E8CB /* FileListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileListView.swift; path = Views/FileListView.swift; sourceTree = "<group>"; };
-		FF284D7F4EFF33F98A8EF37A /* FileMetadataService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileMetadataService.swift; path = Services/FileMetadataService.swift; sourceTree = "<group>"; };
+		049C403ECB4009AF03ADC94F /* FolderSizeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FolderSizeService.swift; path = Services/FolderSizeService.swift; sourceTree = "<group>"; };
+		090497BE6789F31B54A1EB44 /* FinderSync-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "FinderSync-Info.plist"; sourceTree = "<group>"; };
+		17581E89CBF9AE51682A35FC /* SortMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SortMenu.swift; path = Views/SortMenu.swift; sourceTree = "<group>"; };
+		346404740A2D2EEAB5784C02 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		34EB9CF346AD13BA786EE875 /* FileInfoView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileInfoView.swift; path = Views/FileInfoView.swift; sourceTree = "<group>"; };
+		3503F98824AD4732F12EF1EC /* BatchRenameView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BatchRenameView.swift; path = Views/BatchRenameView.swift; sourceTree = "<group>"; };
+		3D61F146260B1B1B82EF7991 /* TemplateService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TemplateService.swift; path = Services/TemplateService.swift; sourceTree = "<group>"; };
+		447AAC5BF5CF76ABB31FE0DD /* BreadcrumbView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BreadcrumbView.swift; path = Views/BreadcrumbView.swift; sourceTree = "<group>"; };
+		4496CF9BFBD49E3F2473148F /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		457D7E53381E5DA1D80F93BD /* FinderSyncExtension.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FinderSyncExtension.swift; sourceTree = "<group>"; };
+		56E4F7D0BC031CF91F6E4893 /* Freeloader.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Freeloader.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5764F87163B13B04E7332522 /* SpotlightSearchService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SpotlightSearchService.swift; path = Services/SpotlightSearchService.swift; sourceTree = "<group>"; };
+		5ABE9EA9F1D4DBDDDC078A71 /* ArchiveService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ArchiveService.swift; path = Services/ArchiveService.swift; sourceTree = "<group>"; };
+		633827D43D2901B939D7A6AB /* AddressBarRow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AddressBarRow.swift; path = Views/AddressBarRow.swift; sourceTree = "<group>"; };
+		651FE6A9E337D09823A75824 /* TransferDetailsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TransferDetailsView.swift; path = Views/TransferDetailsView.swift; sourceTree = "<group>"; };
+		69AE0B2707F696C023473E5D /* FileMetadataService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileMetadataService.swift; path = Services/FileMetadataService.swift; sourceTree = "<group>"; };
+		6C1A6B54D5B2F0C5A4B0D751 /* FileItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileItem.swift; path = Models/FileItem.swift; sourceTree = "<group>"; };
+		7479B72CFC17DD390F98511D /* FolderSizeText.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FolderSizeText.swift; path = Views/FolderSizeText.swift; sourceTree = "<group>"; };
+		790A5283161DBC99AA327B86 /* TabBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TabBarView.swift; path = Views/TabBarView.swift; sourceTree = "<group>"; };
+		7FC9FDEA7EC4EBAADE6F8FD8 /* FileListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileListView.swift; path = Views/FileListView.swift; sourceTree = "<group>"; };
+		82837DB81136CAB2F3EEC281 /* ThumbnailService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ThumbnailService.swift; path = Services/ThumbnailService.swift; sourceTree = "<group>"; };
+		830192125793852BC91425E4 /* FileActionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileActionService.swift; path = Services/FileActionService.swift; sourceTree = "<group>"; };
+		858CA11FB5C31F3545D77140 /* CommandPaletteView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CommandPaletteView.swift; path = Views/CommandPaletteView.swift; sourceTree = "<group>"; };
+		86C064E0B0EA3D00323884F5 /* FinderSync.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = FinderSync.entitlements; sourceTree = "<group>"; };
+		86C885EE57A50363802FCD0D /* NuFinderApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NuFinderApp.swift; sourceTree = "<group>"; };
+		8B3C79B3067526D761A5F1EA /* OperationJournal.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OperationJournal.swift; path = Services/OperationJournal.swift; sourceTree = "<group>"; };
+		96D2420B257FBBDB9135CE2B /* SidebarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SidebarView.swift; path = Views/SidebarView.swift; sourceTree = "<group>"; };
+		99D3DB0E9C3E808C34DA7FAE /* SearchBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SearchBarView.swift; path = Views/SearchBarView.swift; sourceTree = "<group>"; };
+		9AB1023170ACDCA9DBFF8DCD /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
+		9BAD9A22AB829089D7EF99C3 /* DirectoryWatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DirectoryWatcher.swift; path = Services/DirectoryWatcher.swift; sourceTree = "<group>"; };
+		ADCDE2A0F27852CFA8A84B94 /* FinderSyncBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FinderSyncBridge.swift; path = Services/FinderSyncBridge.swift; sourceTree = "<group>"; };
+		AFCADF7AF330295A65604589 /* ChunkedFileCopier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ChunkedFileCopier.swift; path = Services/ChunkedFileCopier.swift; sourceTree = "<group>"; };
+		B0678F0A2BB37C0F8329D5FE /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = Views/ContentView.swift; sourceTree = "<group>"; };
+		B079110FA24E937324417007 /* MetadataEditorView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MetadataEditorView.swift; path = Views/MetadataEditorView.swift; sourceTree = "<group>"; };
+		C534B0FE2A4D213840B88B5C /* FreeloaderFinderSync.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FreeloaderFinderSync.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C888243CEAE64575D8B257C6 /* WindowService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WindowService.swift; path = Services/WindowService.swift; sourceTree = "<group>"; };
+		CE3CFC5C7FFB65079E827B22 /* BrowserModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BrowserModel.swift; path = Models/BrowserModel.swift; sourceTree = "<group>"; };
+		CFBDC14D0D4458C18FED7F9F /* ImagePreviewPane.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImagePreviewPane.swift; path = Views/ImagePreviewPane.swift; sourceTree = "<group>"; };
+		D3B6FC2CEF19419293DE6B81 /* FileThumbnailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileThumbnailView.swift; path = Views/FileThumbnailView.swift; sourceTree = "<group>"; };
+		D634383853E4CC140CE26ED0 /* TerminalService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TerminalService.swift; path = Services/TerminalService.swift; sourceTree = "<group>"; };
+		D8D2E7F58F5B397B355A945F /* QuickLookService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuickLookService.swift; path = Services/QuickLookService.swift; sourceTree = "<group>"; };
+		DE108F12085B6A7CFC27DBAC /* AddressBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AddressBarView.swift; path = Views/AddressBarView.swift; sourceTree = "<group>"; };
+		DEFF7E89A818449643F8FAA3 /* App-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "App-Info.plist"; sourceTree = "<group>"; };
+		E0536B143AC6A2031ECE29A8 /* NuFinder.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = NuFinder.entitlements; sourceTree = "<group>"; };
+		E6DF5211DC4BAA1E601FC322 /* FileOperationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileOperationManager.swift; path = Services/FileOperationManager.swift; sourceTree = "<group>"; };
+		EAD985255C2A4B73281C75DA /* GitStatusBadge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GitStatusBadge.swift; path = Views/GitStatusBadge.swift; sourceTree = "<group>"; };
+		EFEA4379F2E76F0968309B00 /* GitStatusService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GitStatusService.swift; path = Services/GitStatusService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		66900389F3B921B1F71FF482 /* Frameworks */ = {
+		579A33CF293AE089E3B85724 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DD2E9907F6E7E4D489572A2E /* Cocoa.framework in Frameworks */,
+				127DA9968936E5207914F016 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		85B9BE86E4762C145CB37873 /* Frameworks */ = {
+		B5736030BA042C5A0B186185 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13043FF1445922C5346B7731 /* Cocoa.framework in Frameworks */,
+				33AA3FB1E5E119704F2554FE /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		313CEEE6072D068DFA32EFB3 /* Products */ = {
+		19BBE0034C394114F92BA56E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C43C66F756E3B76865329A16 /* Freeloader.app */,
-				D94AEE8FC2C7A5B30E83FD8D /* FreeloaderFinderSync.appex */,
+				56E4F7D0BC031CF91F6E4893 /* Freeloader.app */,
+				C534B0FE2A4D213840B88B5C /* FreeloaderFinderSync.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		348111A51641F8D3B03843E6 /* OS X */ = {
+		5A478CCEBE17D267CE35CF2C /* FinderSyncExtension */ = {
 			isa = PBXGroup;
 			children = (
-				E3E97262B582A3F9F7A96561 /* Cocoa.framework */,
-			);
-			name = "OS X";
-			sourceTree = "<group>";
-		};
-		804FDC4FA340698EC381DB78 = {
-			isa = PBXGroup;
-			children = (
-				313CEEE6072D068DFA32EFB3 /* Products */,
-				D65B7700284EE6A7E04C0FA4 /* Frameworks */,
-				A7555467C815A3D8C0C1F4A4 /* Sources */,
-				CE91C0768C853D4E6FA3EB2B /* FinderSyncExtension */,
-				D35621309D365B90D05A01FA /* Config */,
-				D2692B9E5FE44F54F50CFA78 /* Assets */,
-			);
-			sourceTree = "<group>";
-		};
-		A7555467C815A3D8C0C1F4A4 /* Sources */ = {
-			isa = PBXGroup;
-			children = (
-				3DD8C3DFCD508439EE9CE62A /* BrowserModel.swift */,
-				32126F5DF570533E226040C3 /* FileItem.swift */,
-				33135F0B67B25DB15B9BCFDC /* NuFinderApp.swift */,
-				C0E0D4D4BAF849523AC3920D /* ChunkedFileCopier.swift */,
-				E095478F771C916B1279824F /* DirectoryWatcher.swift */,
-				399294F5726014C856D64C18 /* FileActionService.swift */,
-				FF284D7F4EFF33F98A8EF37A /* FileMetadataService.swift */,
-				8D9B3CD4A8E76339AFC0A70B /* FileOperationManager.swift */,
-				C4212FC1390F2455BA2C54D7 /* FinderSyncBridge.swift */,
-				1036F70F7326F838CB71F9EB /* OperationJournal.swift */,
-				D7173601B83B7F327DE21DC3 /* QuickLookService.swift */,
-				EF460775FE068D10C606779E /* SpotlightSearchService.swift */,
-				939A45FC53D39F695657106F /* TerminalService.swift */,
-				D90C4F4A5C58CD9E9CCF7FEE /* WindowService.swift */,
-				108917BDE4ACF16A8BC3F4E2 /* AddressBarRow.swift */,
-				11678C9C9947485B4B6AF3A6 /* AddressBarView.swift */,
-				A5FBE68A3C3DE47BA804F78A /* BreadcrumbView.swift */,
-				E6EE187D50288D71440A37E4 /* ContentView.swift */,
-				B8E912C00F58A76D697BCD84 /* FileInfoView.swift */,
-				F0C5118F9E10ED9D75B9E8CB /* FileListView.swift */,
-				2AFC3BD3A1FAD74E484588E8 /* MetadataEditorView.swift */,
-				D37DCD606038DC9429CD48C3 /* SearchBarView.swift */,
-				442E9B762C837E176B387CC5 /* SettingsView.swift */,
-				EC8E9CB53FFC28690E3A6195 /* SidebarView.swift */,
-				4870E456C657B820DCA0C938 /* SortMenu.swift */,
-				4F0906C595EF861439BF56BD /* TabBarView.swift */,
-				05E172E7BBDC2B65B3BDC37E /* TransferDetailsView.swift */,
-			);
-			name = Sources;
-			path = Sources/NuFinder;
-			sourceTree = "<group>";
-		};
-		CE91C0768C853D4E6FA3EB2B /* FinderSyncExtension */ = {
-			isa = PBXGroup;
-			children = (
-				B3D2553FA71B9BE58A77ADAF /* FinderSyncExtension.swift */,
+				457D7E53381E5DA1D80F93BD /* FinderSyncExtension.swift */,
 			);
 			name = FinderSyncExtension;
 			path = FinderSyncExtension;
 			sourceTree = "<group>";
 		};
-		D2692B9E5FE44F54F50CFA78 /* Assets */ = {
+		7C8897BE05C06EE014231969 /* Config */ = {
 			isa = PBXGroup;
 			children = (
-				96598B1ABACD5077E64BC938 /* Assets.xcassets */,
-			);
-			name = Assets;
-			path = Assets;
-			sourceTree = "<group>";
-		};
-		D35621309D365B90D05A01FA /* Config */ = {
-			isa = PBXGroup;
-			children = (
-				DFA2C5C199290BC57C5CF523 /* App-Info.plist */,
-				DD9D5357E82317F658B8D3C5 /* NuFinder.entitlements */,
-				114D97D858DBCED24C3DDDC2 /* FinderSync-Info.plist */,
-				B2B0CCAEE823C4A9EC6F7CD0 /* FinderSync.entitlements */,
+				DEFF7E89A818449643F8FAA3 /* App-Info.plist */,
+				E0536B143AC6A2031ECE29A8 /* NuFinder.entitlements */,
+				090497BE6789F31B54A1EB44 /* FinderSync-Info.plist */,
+				86C064E0B0EA3D00323884F5 /* FinderSync.entitlements */,
 			);
 			name = Config;
 			path = Config;
 			sourceTree = "<group>";
 		};
-		D65B7700284EE6A7E04C0FA4 /* Frameworks */ = {
+		BA08ADD2EFF98A5251B06A19 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
-				348111A51641F8D3B03843E6 /* OS X */,
+				4496CF9BFBD49E3F2473148F /* Assets.xcassets */,
+			);
+			name = Assets;
+			path = Assets;
+			sourceTree = "<group>";
+		};
+		BD8BF7BD74CFD5BB6C984FB8 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				CE3CFC5C7FFB65079E827B22 /* BrowserModel.swift */,
+				6C1A6B54D5B2F0C5A4B0D751 /* FileItem.swift */,
+				86C885EE57A50363802FCD0D /* NuFinderApp.swift */,
+				5ABE9EA9F1D4DBDDDC078A71 /* ArchiveService.swift */,
+				AFCADF7AF330295A65604589 /* ChunkedFileCopier.swift */,
+				9BAD9A22AB829089D7EF99C3 /* DirectoryWatcher.swift */,
+				830192125793852BC91425E4 /* FileActionService.swift */,
+				69AE0B2707F696C023473E5D /* FileMetadataService.swift */,
+				E6DF5211DC4BAA1E601FC322 /* FileOperationManager.swift */,
+				ADCDE2A0F27852CFA8A84B94 /* FinderSyncBridge.swift */,
+				049C403ECB4009AF03ADC94F /* FolderSizeService.swift */,
+				EFEA4379F2E76F0968309B00 /* GitStatusService.swift */,
+				8B3C79B3067526D761A5F1EA /* OperationJournal.swift */,
+				D8D2E7F58F5B397B355A945F /* QuickLookService.swift */,
+				5764F87163B13B04E7332522 /* SpotlightSearchService.swift */,
+				3D61F146260B1B1B82EF7991 /* TemplateService.swift */,
+				D634383853E4CC140CE26ED0 /* TerminalService.swift */,
+				82837DB81136CAB2F3EEC281 /* ThumbnailService.swift */,
+				C888243CEAE64575D8B257C6 /* WindowService.swift */,
+				633827D43D2901B939D7A6AB /* AddressBarRow.swift */,
+				DE108F12085B6A7CFC27DBAC /* AddressBarView.swift */,
+				3503F98824AD4732F12EF1EC /* BatchRenameView.swift */,
+				447AAC5BF5CF76ABB31FE0DD /* BreadcrumbView.swift */,
+				858CA11FB5C31F3545D77140 /* CommandPaletteView.swift */,
+				B0678F0A2BB37C0F8329D5FE /* ContentView.swift */,
+				34EB9CF346AD13BA786EE875 /* FileInfoView.swift */,
+				7FC9FDEA7EC4EBAADE6F8FD8 /* FileListView.swift */,
+				D3B6FC2CEF19419293DE6B81 /* FileThumbnailView.swift */,
+				7479B72CFC17DD390F98511D /* FolderSizeText.swift */,
+				EAD985255C2A4B73281C75DA /* GitStatusBadge.swift */,
+				CFBDC14D0D4458C18FED7F9F /* ImagePreviewPane.swift */,
+				B079110FA24E937324417007 /* MetadataEditorView.swift */,
+				99D3DB0E9C3E808C34DA7FAE /* SearchBarView.swift */,
+				9AB1023170ACDCA9DBFF8DCD /* SettingsView.swift */,
+				96D2420B257FBBDB9135CE2B /* SidebarView.swift */,
+				17581E89CBF9AE51682A35FC /* SortMenu.swift */,
+				790A5283161DBC99AA327B86 /* TabBarView.swift */,
+				651FE6A9E337D09823A75824 /* TransferDetailsView.swift */,
+			);
+			name = Sources;
+			path = Sources/NuFinder;
+			sourceTree = "<group>";
+		};
+		C0013EF9A1CCDFD376843E7B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C0A44C580E7629D4849C4C5C /* OS X */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C0A44C580E7629D4849C4C5C /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				346404740A2D2EEAB5784C02 /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
+		D8C75E210D598010BC215353 = {
+			isa = PBXGroup;
+			children = (
+				19BBE0034C394114F92BA56E /* Products */,
+				C0013EF9A1CCDFD376843E7B /* Frameworks */,
+				BD8BF7BD74CFD5BB6C984FB8 /* Sources */,
+				5A478CCEBE17D267CE35CF2C /* FinderSyncExtension */,
+				7C8897BE05C06EE014231969 /* Config */,
+				BA08ADD2EFF98A5251B06A19 /* Assets */,
+			);
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		9AFD941AFC114F3769B552B4 /* FreeloaderFinderSync */ = {
+		0105CD8D46DC77B02F4F31DA /* Freeloader */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 977BA9C77FDA9A508340CD04 /* Build configuration list for PBXNativeTarget "FreeloaderFinderSync" */;
+			buildConfigurationList = 07B7699D1D1E65B4D2408266 /* Build configuration list for PBXNativeTarget "Freeloader" */;
 			buildPhases = (
-				C4691F15AD0DC696B48696DA /* Sources */,
-				66900389F3B921B1F71FF482 /* Frameworks */,
-				77E4A69C50B41375CD97BF25 /* Resources */,
+				7DFD9771393CE9DFE3798F3B /* Sources */,
+				B5736030BA042C5A0B186185 /* Frameworks */,
+				A991FD3EEE54BEB8A2C07B57 /* Resources */,
+				28C157236D60F5748A55075A /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				58BBD5D29AF1722281691D0C /* PBXTargetDependency */,
+			);
+			name = Freeloader;
+			productName = Freeloader;
+			productReference = 56E4F7D0BC031CF91F6E4893 /* Freeloader.app */;
+			productType = "com.apple.product-type.application";
+		};
+		7076F64793B7C04962432C62 /* FreeloaderFinderSync */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0441362AEACFECE1C4B61C6F /* Build configuration list for PBXNativeTarget "FreeloaderFinderSync" */;
+			buildPhases = (
+				58E6045F751D20C62F5CE91C /* Sources */,
+				579A33CF293AE089E3B85724 /* Frameworks */,
+				6F12D3854B68759DFA8B11D1 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -243,38 +295,19 @@
 			);
 			name = FreeloaderFinderSync;
 			productName = FreeloaderFinderSync;
-			productReference = D94AEE8FC2C7A5B30E83FD8D /* FreeloaderFinderSync.appex */;
+			productReference = C534B0FE2A4D213840B88B5C /* FreeloaderFinderSync.appex */;
 			productType = "com.apple.product-type.app-extension";
-		};
-		C424A89AC0F3C2C9AC852935 /* Freeloader */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4A42746CC304D4F94C5A14E1 /* Build configuration list for PBXNativeTarget "Freeloader" */;
-			buildPhases = (
-				7C0BE94DBEB7C2FEB87C11A4 /* Sources */,
-				85B9BE86E4762C145CB37873 /* Frameworks */,
-				F8E3EBA31995D3B3E9D2C15E /* Resources */,
-				7D0C5953E8E9576355710574 /* Embed App Extensions */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				5F2E9372405FD5C2DC7EB811 /* PBXTargetDependency */,
-			);
-			name = Freeloader;
-			productName = Freeloader;
-			productReference = C43C66F756E3B76865329A16 /* Freeloader.app */;
-			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		618F9F5883C47D74CA66AD4E /* Project object */ = {
+		3D50230669A467A872B3D9B7 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 			};
-			buildConfigurationList = FA4375F7FCB9D2AB36A05ED0 /* Build configuration list for PBXProject "Freeloader" */;
+			buildConfigurationList = B7541451EB2E569D461C1D60 /* Build configuration list for PBXProject "Freeloader" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -282,127 +315,104 @@
 				en,
 				Base,
 			);
-			mainGroup = 804FDC4FA340698EC381DB78;
+			mainGroup = D8C75E210D598010BC215353;
 			minimizedProjectReferenceProxies = 0;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 313CEEE6072D068DFA32EFB3 /* Products */;
+			productRefGroup = 19BBE0034C394114F92BA56E /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				C424A89AC0F3C2C9AC852935 /* Freeloader */,
-				9AFD941AFC114F3769B552B4 /* FreeloaderFinderSync */,
+				0105CD8D46DC77B02F4F31DA /* Freeloader */,
+				7076F64793B7C04962432C62 /* FreeloaderFinderSync */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		77E4A69C50B41375CD97BF25 /* Resources */ = {
+		6F12D3854B68759DFA8B11D1 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F8E3EBA31995D3B3E9D2C15E /* Resources */ = {
+		A991FD3EEE54BEB8A2C07B57 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				328AF1BB15B388E12010B13B /* Assets.xcassets in Resources */,
+				EEB3D1D66EB65620C6CC301A /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		7C0BE94DBEB7C2FEB87C11A4 /* Sources */ = {
+		58E6045F751D20C62F5CE91C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C676C5DB3C4426A89BC89CD9 /* BrowserModel.swift in Sources */,
-				F88792D7F448CD9A3E3806B1 /* FileItem.swift in Sources */,
-				0B06267E529DBF79C21E6100 /* NuFinderApp.swift in Sources */,
-				9CA05F2055FB8D8A3F1EFA8F /* ChunkedFileCopier.swift in Sources */,
-				A0071397C78A9AFB508538B3 /* DirectoryWatcher.swift in Sources */,
-				F1B9ECA713FE90FC54AB6C9C /* FileActionService.swift in Sources */,
-				4C9BF7408DD18E7262BD1A3F /* FileMetadataService.swift in Sources */,
-				3315FA7B2B62A71D0954C1B2 /* FileOperationManager.swift in Sources */,
-				CD7E8FE464739BF313488D3C /* FinderSyncBridge.swift in Sources */,
-				E49C62E8B19C295FE63DE965 /* OperationJournal.swift in Sources */,
-				C96258699339A2B779AD450E /* QuickLookService.swift in Sources */,
-				650AF476C8A94B7C6173C7DF /* SpotlightSearchService.swift in Sources */,
-				207054C159F8A40E9D6B12CA /* TerminalService.swift in Sources */,
-				2D3B5B36751E9D8E5789E7B0 /* WindowService.swift in Sources */,
-				61FCCEF59EAD76C97C11D010 /* AddressBarRow.swift in Sources */,
-				ED79F06887728F38804448BF /* AddressBarView.swift in Sources */,
-				126919414BA288FB7203AB7D /* BreadcrumbView.swift in Sources */,
-				968BB42C1B7CCAF41BBCF7E1 /* ContentView.swift in Sources */,
-				C88D2D1593845441566B6A31 /* FileInfoView.swift in Sources */,
-				04896F8E4E8A66ED8A6520F3 /* FileListView.swift in Sources */,
-				6D96B252E842EB4EB81DEBAC /* MetadataEditorView.swift in Sources */,
-				B4FBC6B21EF7CF7B9570AE2F /* SearchBarView.swift in Sources */,
-				E72EC4BE672502068469E24D /* SettingsView.swift in Sources */,
-				425FF556D33652033502BFD7 /* SidebarView.swift in Sources */,
-				A768ADA91DE8800DF7E50E85 /* SortMenu.swift in Sources */,
-				52E8340A1DDA05508B52F7E1 /* TabBarView.swift in Sources */,
-				DCC1E21FAB9EA9C95F57C8F9 /* TransferDetailsView.swift in Sources */,
+				3052F8AB27BDFE1A42FA183A /* FinderSyncExtension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C4691F15AD0DC696B48696DA /* Sources */ = {
+		7DFD9771393CE9DFE3798F3B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C8F19EAA312BA5F316A2CF69 /* FinderSyncExtension.swift in Sources */,
+				A86975468A5C3C44C68C6E68 /* BrowserModel.swift in Sources */,
+				93475AD7D74CD815F01DB9D1 /* FileItem.swift in Sources */,
+				4BFE57C350C3FBDE2E4CC643 /* NuFinderApp.swift in Sources */,
+				CE4762C0B38EC1415A730179 /* ArchiveService.swift in Sources */,
+				A13A1086EBEF6958DEBDB23C /* ChunkedFileCopier.swift in Sources */,
+				6D652D051DC7B8F2CF6243BE /* DirectoryWatcher.swift in Sources */,
+				34ADDD44B6BACE65FEAC7C69 /* FileActionService.swift in Sources */,
+				61B535713B7A413FCE0688EE /* FileMetadataService.swift in Sources */,
+				96821FBC84F1E9F62118F59E /* FileOperationManager.swift in Sources */,
+				DCC1E08B7223C30070E25A71 /* FinderSyncBridge.swift in Sources */,
+				DE39DF6BE519BE3C6050FFD3 /* FolderSizeService.swift in Sources */,
+				819A374D06E0AF9ACDA1838D /* GitStatusService.swift in Sources */,
+				C3E457840201581A13F709E0 /* OperationJournal.swift in Sources */,
+				01F3D6E89A45FA4062186DB7 /* QuickLookService.swift in Sources */,
+				F390E091280E631E247FFA26 /* SpotlightSearchService.swift in Sources */,
+				158393A58EDE4D5EEADC401A /* TemplateService.swift in Sources */,
+				25C27192F21CA533F62F410A /* TerminalService.swift in Sources */,
+				E147FE77A0078D0D5A8C37E0 /* ThumbnailService.swift in Sources */,
+				4076651AC885C6565EC9F885 /* WindowService.swift in Sources */,
+				A0F6F58813337897954F8175 /* AddressBarRow.swift in Sources */,
+				A24169995A9AD890E6036C8A /* AddressBarView.swift in Sources */,
+				2818E5A0196F58A506D12DF7 /* BatchRenameView.swift in Sources */,
+				FDF41C79A2236A7CDA42892B /* BreadcrumbView.swift in Sources */,
+				CFAFC50CC2CE7B0CB6ADE38D /* CommandPaletteView.swift in Sources */,
+				A651878101A9DA9E63C70FD1 /* ContentView.swift in Sources */,
+				8B2939F47208438722E6B581 /* FileInfoView.swift in Sources */,
+				DA5E26BA70F4B6EB4B38C580 /* FileListView.swift in Sources */,
+				F91CCD09B5BEA19FA7FA5626 /* FileThumbnailView.swift in Sources */,
+				4B35B013C56B3D228659791C /* FolderSizeText.swift in Sources */,
+				9E94AA2B27F0BDAC83AF92F9 /* GitStatusBadge.swift in Sources */,
+				329E85777842CBE5E12EF3D4 /* ImagePreviewPane.swift in Sources */,
+				9F3BE9ECFEB039E61097E63C /* MetadataEditorView.swift in Sources */,
+				D0B88B95CFD81009578D9C0E /* SearchBarView.swift in Sources */,
+				7129CB41DBBC96CA59358BD2 /* SettingsView.swift in Sources */,
+				C6A6E20D29B611EBC41AA8BA /* SidebarView.swift in Sources */,
+				10E18412B5027BF7F112681B /* SortMenu.swift in Sources */,
+				1FDC029D1FED7F60F4BA50E1 /* TabBarView.swift in Sources */,
+				26BB470CE27A154E07399A5F /* TransferDetailsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		5F2E9372405FD5C2DC7EB811 /* PBXTargetDependency */ = {
+		58BBD5D29AF1722281691D0C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = FreeloaderFinderSync;
-			target = 9AFD941AFC114F3769B552B4 /* FreeloaderFinderSync */;
-			targetProxy = CF3E49D0584007C1DB4EBF7F /* PBXContainerItemProxy */;
+			target = 7076F64793B7C04962432C62 /* FreeloaderFinderSync */;
+			targetProxy = 79B2E769BE9A0207EC4B8F63 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		07C816EFB0CAE3E310E1624A /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Config/FinderSync.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = FLJNW3455S;
-				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = "Config/FinderSync-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.miguelrodriguez.NuFinder.FinderSync;
-				PRODUCT_NAME = FreeloaderFinderSync;
-				SDKROOT = macosx;
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 6.0;
-			};
-			name = Debug;
-		};
-		1507867CEAB96F08176E5A1C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Config/FinderSync.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = FLJNW3455S;
-				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = "Config/FinderSync-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.miguelrodriguez.NuFinder.FinderSync;
-				PRODUCT_NAME = FreeloaderFinderSync;
-				SDKROOT = macosx;
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 6.0;
-			};
-			name = Release;
-		};
-		277A360B5B8A376B3E1FDD0D /* Release */ = {
+		035F77E6CE92F09057142CBA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -456,27 +466,24 @@
 			};
 			name = Release;
 		};
-		7DD6CDC10FC6036B63550898 /* Release */ = {
+		68DCA4400A55726A5B195994 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Config/NuFinder.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Config/FinderSync.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = FLJNW3455S;
 				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = "Config/App-Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				INFOPLIST_FILE = "Config/FinderSync-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.miguelrodriguez.NuFinder;
-				PRODUCT_NAME = Freeloader;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelrodriguez.NuFinder.FinderSync;
+				PRODUCT_NAME = FreeloaderFinderSync;
 				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
-		8DE009BA7B715B72BD273CA7 /* Debug */ = {
+		7FCADD06AFEA3235591C8589 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -496,7 +503,24 @@
 			};
 			name = Debug;
 		};
-		9D902F7AC3BCFE52BD93A0B3 /* Debug */ = {
+		B09BA45F67A3FAD38B47B14B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/FinderSync.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FLJNW3455S;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "Config/FinderSync-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelrodriguez.NuFinder.FinderSync;
+				PRODUCT_NAME = FreeloaderFinderSync;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		F8E3915C36619E86C144BBB3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -557,37 +581,57 @@
 			};
 			name = Debug;
 		};
+		FFB1E65069886AB635742266 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Config/NuFinder.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = FLJNW3455S;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "Config/App-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelrodriguez.NuFinder;
+				PRODUCT_NAME = Freeloader;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4A42746CC304D4F94C5A14E1 /* Build configuration list for PBXNativeTarget "Freeloader" */ = {
+		0441362AEACFECE1C4B61C6F /* Build configuration list for PBXNativeTarget "FreeloaderFinderSync" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				7DD6CDC10FC6036B63550898 /* Release */,
-				8DE009BA7B715B72BD273CA7 /* Debug */,
+				68DCA4400A55726A5B195994 /* Release */,
+				B09BA45F67A3FAD38B47B14B /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		977BA9C77FDA9A508340CD04 /* Build configuration list for PBXNativeTarget "FreeloaderFinderSync" */ = {
+		07B7699D1D1E65B4D2408266 /* Build configuration list for PBXNativeTarget "Freeloader" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1507867CEAB96F08176E5A1C /* Release */,
-				07C816EFB0CAE3E310E1624A /* Debug */,
+				FFB1E65069886AB635742266 /* Release */,
+				7FCADD06AFEA3235591C8589 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FA4375F7FCB9D2AB36A05ED0 /* Build configuration list for PBXProject "Freeloader" */ = {
+		B7541451EB2E569D461C1D60 /* Build configuration list for PBXProject "Freeloader" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				9D902F7AC3BCFE52BD93A0B3 /* Debug */,
-				277A360B5B8A376B3E1FDD0D /* Release */,
+				F8E3915C36619E86C144BBB3 /* Debug */,
+				035F77E6CE92F09057142CBA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 618F9F5883C47D74CA66AD4E /* Project object */;
+	rootObject = 3D50230669A467A872B3D9B7 /* Project object */;
 }

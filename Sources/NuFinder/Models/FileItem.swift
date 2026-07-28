@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import UniformTypeIdentifiers
 
 struct FileItem: Identifiable, Hashable, Sendable {
     let url: URL
@@ -31,6 +32,18 @@ struct FileItem: Identifiable, Hashable, Sendable {
 
     var icon: NSImage {
         NSWorkspace.shared.icon(forFile: url.path)
+    }
+
+    var isImage: Bool {
+        guard !isDirectory,
+              let type = UTType(filenameExtension: url.pathExtension) else {
+            return false
+        }
+        return type.conforms(to: .image)
+    }
+
+    var isPackage: Bool {
+        (try? url.resourceValues(forKeys: [.isPackageKey]).isPackage) == true
     }
 }
 
