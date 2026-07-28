@@ -1,7 +1,7 @@
-:HL["/Freeloader/_next/static/chunks/0hm_-s4caw165.css","style"]
+:HL["/Freeloader/_next/static/chunks/0eq~.je_0mhds.css","style"]
 :HL["/Freeloader/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/Freeloader/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/Freeloader/freeloader-icon-concept.png","image"]
 :HL["/Freeloader/screenshots/overview.png","image"]
 :HL["/Freeloader/screenshots/tree-view.png","image"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"6InWKNvSUjci3mvLHF5oG"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"Xd4kWyBP-X9divpgXL3nk"}
