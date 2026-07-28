@@ -93,7 +93,10 @@ struct SidebarView: View {
                 }
                 if browser.showsTree {
                     Section("Folders") {
-                        FolderTreeNode(url: FileManager.default.homeDirectoryForCurrentUser)
+                        FolderTreeNode(
+                            url: FileManager.default.homeDirectoryForCurrentUser,
+                            initiallyExpanded: true
+                        )
                     }
                 }
             }
@@ -222,6 +225,11 @@ private struct FolderTreeNode: View {
     @State private var children: [URL] = []
     @State private var springExpandTask: Task<Void, Never>?
 
+    init(url: URL, initiallyExpanded: Bool = false) {
+        self.url = url
+        _expanded = State(initialValue: initiallyExpanded)
+    }
+
     var body: some View {
         DisclosureGroup(isExpanded: $expanded) {
             ForEach(children, id: \.self) { child in
@@ -251,6 +259,9 @@ private struct FolderTreeNode: View {
         }
         .onChange(of: expanded) { _, isExpanded in
             if isExpanded && children.isEmpty { loadChildren() }
+        }
+        .onAppear {
+            if expanded && children.isEmpty { loadChildren() }
         }
     }
 

@@ -192,6 +192,27 @@ struct ContentView: View {
             .help("Parent Folder")
         }
         ToolbarItemGroup {
+            Menu {
+                ForEach(FileViewMode.allCases) { mode in
+                    Button {
+                        browser.viewMode = mode
+                    } label: {
+                        Label(
+                            mode.rawValue,
+                            systemImage: browser.viewMode == mode
+                                ? "checkmark"
+                                : viewModeIcon(mode)
+                        )
+                    }
+                }
+            } label: {
+                FreeloaderToolbarIcon(
+                    systemName: viewModeIcon(browser.viewMode),
+                    isActive: browser.viewMode != .list
+                )
+            }
+            .help("View Mode: \(browser.viewMode.rawValue)")
+
             SortMenu()
             if toolbarShowsSplit {
                 Button {
@@ -226,6 +247,14 @@ struct ContentView: View {
                 .buttonStyle(.plain)
                 .help("File Operations")
             }
+        }
+    }
+
+    private func viewModeIcon(_ mode: FileViewMode) -> String {
+        switch mode {
+        case .list: "list.bullet"
+        case .compact: "rectangle.grid.1x2"
+        case .icons: "square.grid.2x2"
         }
     }
 }
