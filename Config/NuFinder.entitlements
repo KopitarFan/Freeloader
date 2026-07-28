@@ -5,9 +5,5 @@
     <!-- NuFinder intentionally remains unsandboxed: a general-purpose file
          manager cannot operate on arbitrary user-selected paths inside the
          App Sandbox without repeatedly losing Finder-equivalent access. -->
-    <key>com.apple.security.application-groups</key>
-    <array>
-        <string>group.com.miguelrodriguez.NuFinder</string>
-    </array>
 </dict>
 </plist>
