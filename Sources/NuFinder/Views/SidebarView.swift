@@ -4,6 +4,8 @@ struct SidebarView: View {
     @EnvironmentObject private var browser: BrowserModel
     @EnvironmentObject private var operations: FileOperationManager
     @State private var springOpenTask: Task<Void, Never>?
+    @State private var volumes: [MountedVolume] = []
+    @State private var pendingEject: MountedVolume?
 
     private var builtInFavorites: [(String, String, URL)] {
         let home = FileManager.default.homeDirectoryForCurrentUser
@@ -57,6 +59,38 @@ struct SidebarView: View {
                         browser.addFavorite(url) || added
                     }
                 } isTargeted: { _ in }
+                Section("Locations") {
+                    ForEach(volumes) { volume in
+                        HStack(spacing: 8) {
+                            Button {
+                                browser.navigate(to: volume.url)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Label(volume.name, systemImage: volume.isRemovable ? "externaldrive" : "internaldrive")
+                                        .lineLimit(1)
+                                    if let fraction = volume.usedFraction {
+                                        ProgressView(value: fraction)
+                                            .controlSize(.mini)
+                                    }
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            Spacer(minLength: 2)
+                            if volume.isEjectable {
+                                Button {
+                                    requestEject(volume)
+                                } label: {
+                                    Image(systemName: "eject")
+                                }
+                                .buttonStyle(.borderless)
+                                .help("Eject \(volume.name)")
+                            }
+                        }
+                        .dropDestination(for: URL.self) { urls, _ in
+                            moveDroppedItems(urls, to: volume.url)
+                        }
+                    }
+                }
                 if browser.showsTree {
                     Section("Folders") {
                         FolderTreeNode(url: FileManager.default.homeDirectoryForCurrentUser)
@@ -73,6 +107,65 @@ struct SidebarView: View {
             .buttonStyle(.borderless)
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .task {
+            refreshVolumes()
+        }
+        .confirmationDialog(
+            "Transfers are still running",
+            isPresented: Binding(
+                get: { pendingEject != nil },
+                set: { if !$0 { pendingEject = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Eject Anyway", role: .destructive) {
+                if let volume = pendingEject { eject(volume) }
+                pendingEject = nil
+            }
+            Button("Cancel", role: .cancel) { pendingEject = nil }
+        } message: {
+            Text("Ejecting now may interrupt a file operation using this drive.")
+        }
+    }
+
+    private func refreshVolumes() {
+        let keys: Set<URLResourceKey> = [
+            .volumeNameKey, .volumeIsRemovableKey, .volumeIsEjectableKey,
+            .volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey
+        ]
+        volumes = (FileManager.default.mountedVolumeURLs(
+            includingResourceValuesForKeys: Array(keys),
+            options: [.skipHiddenVolumes]
+        ) ?? []).compactMap { url in
+            guard let values = try? url.resourceValues(forKeys: keys) else { return nil }
+            return MountedVolume(
+                url: url,
+                name: values.volumeName ?? url.lastPathComponent,
+                isRemovable: values.volumeIsRemovable ?? false,
+                isEjectable: values.volumeIsEjectable ?? false,
+                totalBytes: values.volumeTotalCapacity.map(Int64.init),
+                availableBytes: values.volumeAvailableCapacityForImportantUsage
+            )
+        }
+    }
+
+    private func requestEject(_ volume: MountedVolume) {
+        if operations.operations.contains(where: { $0.finishedAt == nil }) {
+            pendingEject = volume
+        } else {
+            eject(volume)
+        }
+    }
+
+    private func eject(_ volume: MountedVolume) {
+        Task {
+            do {
+                try NSWorkspace.shared.unmountAndEjectDevice(at: volume.url)
+                refreshVolumes()
+            } catch {
+                browser.errorMessage = "Couldn’t eject \(volume.name): \(error.localizedDescription)"
+            }
         }
     }
 
@@ -102,6 +195,22 @@ struct SidebarView: View {
             guard !Task.isCancelled else { return }
             browser.navigate(to: url)
         }
+    }
+}
+
+private struct MountedVolume: Identifiable {
+    let url: URL
+    let name: String
+    let isRemovable: Bool
+    let isEjectable: Bool
+    let totalBytes: Int64?
+    let availableBytes: Int64?
+
+    var id: URL { url }
+
+    var usedFraction: Double? {
+        guard let totalBytes, let availableBytes, totalBytes > 0 else { return nil }
+        return min(1, max(0, Double(totalBytes - availableBytes) / Double(totalBytes)))
     }
 }
 

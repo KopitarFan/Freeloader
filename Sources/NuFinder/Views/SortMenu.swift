@@ -36,7 +36,10 @@ struct SortMenu: View {
                 }
             }
         } label: {
-            Label("Sort", systemImage: "arrow.up.arrow.down")
+            FreeloaderToolbarIcon(
+                systemName: "arrow.up.arrow.down",
+                isActive: browser.sortCriteria.count > 1
+            )
         }
         .help("Multi-Criteria Sort")
     }

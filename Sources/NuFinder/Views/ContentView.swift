@@ -3,26 +3,39 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var browser: BrowserModel
     @EnvironmentObject private var operations: FileOperationManager
+    @StateObject private var secondaryBrowser = BrowserModel(
+        initialURL: FileManager.default.homeDirectoryForCurrentUser,
+        restoresSession: false
+    )
+    @AppStorage("showsSplitPane") private var showsSplitPane = false
+    @AppStorage("toolbar.showsSplit") private var toolbarShowsSplit = true
+    @AppStorage("toolbar.showsTerminal") private var toolbarShowsTerminal = true
+    @AppStorage("toolbar.showsOperations") private var toolbarShowsOperations = true
+    @AppStorage("gitStatusEnabled") private var gitStatusEnabled = false
     @State private var newFileName = "Untitled.txt"
     @State private var newFolderName = "untitled folder"
-    @State private var batchRenamePattern = "{name}-{index}"
 
     var body: some View {
         NavigationSplitView {
             SidebarView()
                 .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 320)
         } detail: {
-            VStack(spacing: 0) {
-                TabBarView()
-                Divider()
-                AddressBarRow()
-                Divider()
-                SearchBarView()
-                Divider()
-                FileListView()
+            HStack(spacing: 0) {
+                browserPane(for: browser)
+                if showsSplitPane {
+                    Divider()
+                    browserPane(for: secondaryBrowser)
+                        .frame(minWidth: 320)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                }
             }
+            .animation(.easeInOut(duration: 0.18), value: showsSplitPane)
         }
         .toolbar { toolbar }
+        .onAppear { NSApp.keyWindow?.representedURL = browser.currentURL }
+        .onChange(of: browser.currentURL) { _, url in
+            NSApp.keyWindow?.representedURL = url
+        }
         .onChange(of: browser.viewMode) { _, _ in browser.saveViewPreferences() }
         .onChange(of: browser.showsKindColumn) { _, _ in browser.saveViewPreferences() }
         .onChange(of: browser.showsSizeColumn) { _, _ in browser.saveViewPreferences() }
@@ -48,12 +61,21 @@ struct ContentView: View {
         } message: {
             Text("Create a folder in \(browser.currentURL.lastPathComponent).")
         }
-        .alert("Batch Rename", isPresented: $browser.showsBatchRenamePrompt) {
-            TextField("Pattern", text: $batchRenamePattern)
+        .sheet(isPresented: $browser.showsBatchRenamePrompt) {
+            BatchRenameView()
+                .environmentObject(browser)
+        }
+        .sheet(isPresented: $browser.showsCommandPalette) {
+            CommandPaletteView()
+                .environmentObject(browser)
+                .environmentObject(operations)
+        }
+        .alert("Tags", isPresented: $browser.showsTagPrompt) {
+            TextField("work, important, red", text: $browser.tagText)
             Button("Cancel", role: .cancel) {}
-            Button("Rename") { browser.batchRename(pattern: batchRenamePattern) }
+            Button("Apply") { browser.applyTagsFromPrompt() }
         } message: {
-            Text("Use {name} for the original name and {index} for numbering.")
+            Text("Enter comma-separated Finder tags. Leave the field empty to remove tags.")
         }
         .alert("Freeloader", isPresented: Binding(
             get: { browser.errorMessage != nil },
@@ -98,64 +120,166 @@ struct ContentView: View {
         }
     }
 
+    @ViewBuilder
+    private func browserPane(for model: BrowserModel) -> some View {
+        VStack(spacing: 0) {
+            TabBarView()
+            Divider()
+            AddressBarRow()
+            Divider()
+            SearchBarView()
+            Divider()
+            HStack(spacing: 0) {
+                FileListView()
+                if let previewItem = previewItem(in: model) {
+                    Divider()
+                    ImagePreviewPane(item: previewItem)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                }
+            }
+            .animation(.easeInOut(duration: 0.16), value: previewItem(in: model)?.url)
+        }
+        .environmentObject(model)
+        .environmentObject(operations)
+        .task(id: model.currentURL) {
+            if gitStatusEnabled {
+                GitStatusService.shared.refresh(for: model.currentURL)
+            }
+        }
+    }
+
+    private func previewItem(in model: BrowserModel) -> FileItem? {
+        guard model.selection.count == 1,
+              let url = model.selection.first,
+              let item = model.displayedItems.first(where: { $0.url == url }),
+              !item.isDirectory else {
+            return nil
+        }
+        return item
+    }
+
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
         ToolbarItemGroup(placement: .navigation) {
-            Button(action: browser.goBack) {
-                Image(systemName: "chevron.left")
+            Menu {
+                ForEach(browser.backHistory.reversed(), id: \.self) { url in
+                    Button(url.path) { browser.navigateToHistory(url) }
+                }
+            } label: {
+                FreeloaderToolbarIcon(systemName: "chevron.left")
+            } primaryAction: {
+                browser.goBack()
             }
             .disabled(!browser.canGoBack)
-            .help("Back")
+            .help("Back; open the menu for history")
+
             Menu {
-                if browser.backHistory.isEmpty {
-                    Text("No Back History")
-                } else {
-                    ForEach(browser.backHistory, id: \.self) { url in
-                        Button(url.path) { browser.navigateToHistory(url) }
-                    }
+                ForEach(browser.forwardHistory.reversed(), id: \.self) { url in
+                    Button(url.path) { browser.navigateToHistory(url) }
                 }
             } label: {
-                Image(systemName: "chevron.down")
-            }
-            .menuStyle(.borderlessButton)
-            .fixedSize()
-            Button(action: browser.goForward) {
-                Image(systemName: "chevron.right")
+                FreeloaderToolbarIcon(systemName: "chevron.right")
+            } primaryAction: {
+                browser.goForward()
             }
             .disabled(!browser.canGoForward)
-            .help("Forward")
-            Menu {
-                if browser.forwardHistory.isEmpty {
-                    Text("No Forward History")
-                } else {
-                    ForEach(browser.forwardHistory, id: \.self) { url in
-                        Button(url.path) { browser.navigateToHistory(url) }
-                    }
-                }
-            } label: {
-                Image(systemName: "chevron.down")
-            }
-            .menuStyle(.borderlessButton)
-            .fixedSize()
+            .help("Forward; open the menu for history")
+
             Button(action: browser.goUp) {
-                Image(systemName: "arrow.up")
+                FreeloaderToolbarIcon(systemName: "arrow.up")
             }
+            .buttonStyle(.plain)
             .help("Parent Folder")
         }
         ToolbarItemGroup {
             SortMenu()
-            Button {
-                TerminalService.open(at: browser.currentURL)
-            } label: {
-                Image(systemName: "terminal")
+            if toolbarShowsSplit {
+                Button {
+                    showsSplitPane.toggle()
+                } label: {
+                    FreeloaderToolbarIcon(
+                        systemName: "rectangle.split.2x1",
+                        isActive: showsSplitPane
+                    )
+                }
+                .buttonStyle(.plain)
+                .help(showsSplitPane ? "Close Split Pane" : "Open Split Pane")
             }
-            .help("Open in Terminal")
-            Button {
-                operations.showsDetails = true
-            } label: {
-                Image(systemName: "arrow.left.arrow.right.circle")
+            if toolbarShowsTerminal {
+                Button {
+                    TerminalService.open(at: browser.currentURL)
+                } label: {
+                    FreeloaderToolbarIcon(systemName: "terminal")
+                }
+                .buttonStyle(.plain)
+                .help("Open in Terminal")
             }
-            .help("File Operations")
+            if toolbarShowsOperations {
+                Button {
+                    operations.showsDetails = true
+                } label: {
+                    FreeloaderToolbarIcon(
+                        systemName: "arrow.left.arrow.right.circle",
+                        badge: operations.operations.filter { $0.finishedAt == nil }.count
+                    )
+                }
+                .buttonStyle(.plain)
+                .help("File Operations")
+            }
         }
+    }
+}
+
+struct FreeloaderToolbarIcon: View {
+    let systemName: String
+    var isActive = false
+    var badge = 0
+
+    @State private var isHovering = false
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 12, weight: .bold, design: .rounded))
+            .symbolEffect(.bounce, value: isActive)
+            .foregroundStyle(.white)
+            .frame(width: 29, height: 25)
+            .background {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: isActive
+                                ? [Color(red: 0.60, green: 0.28, blue: 0.67),
+                                   Color(red: 0.35, green: 0.13, blue: 0.41)]
+                                : [Color(red: 0.50, green: 0.22, blue: 0.56),
+                                   Color(red: 0.26, green: 0.09, blue: 0.31)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(alignment: .topLeading) {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(.white.opacity(0.24), lineWidth: 0.7)
+                    }
+                    .shadow(
+                        color: Color(red: 0.26, green: 0.09, blue: 0.31).opacity(isHovering ? 0.38 : 0.22),
+                        radius: isHovering ? 5 : 2,
+                        y: isHovering ? 2 : 1
+                    )
+            }
+            .overlay(alignment: .topTrailing) {
+                if badge > 0 {
+                    Text(badge > 9 ? "9+" : "\(badge)")
+                        .font(.system(size: 7, weight: .black, design: .rounded))
+                        .foregroundStyle(Color(red: 0.26, green: 0.09, blue: 0.31))
+                        .padding(.horizontal, 3)
+                        .frame(minWidth: 12, minHeight: 12)
+                        .background(.white, in: Capsule())
+                        .offset(x: 4, y: -4)
+                }
+            }
+            .scaleEffect(isHovering ? 1.06 : 1)
+            .rotationEffect(.degrees(isHovering ? -1.5 : 0))
+            .animation(.spring(response: 0.22, dampingFraction: 0.68), value: isHovering)
+            .onHover { isHovering = $0 }
     }
 }

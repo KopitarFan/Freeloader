@@ -49,9 +49,7 @@ struct FileListView: View {
         Table(browser.displayedItems, selection: $browser.selection) {
             TableColumn("Name") { item in
                 HStack(spacing: 8) {
-                    Image(nsImage: item.icon)
-                        .resizable()
-                        .frame(width: 18, height: 18)
+                    FileThumbnailView(item: item, size: 22)
                     if browser.renameTarget == item.url {
                         RenameField(item: item)
                     } else {
@@ -61,6 +59,7 @@ struct FileListView: View {
                         Image(systemName: "scissors")
                             .foregroundStyle(.secondary)
                     }
+                    GitStatusBadge(url: item.url)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 5)
@@ -112,7 +111,13 @@ struct FileListView: View {
 
             if browser.showsSizeColumn {
                 TableColumn("Size") { item in
-                    Text(item.isDirectory ? "—" : Self.byteFormatter.string(fromByteCount: item.size))
+                    Group {
+                        if item.isDirectory {
+                            FolderSizeText(item: item)
+                        } else {
+                            Text(Self.byteFormatter.string(fromByteCount: item.size))
+                        }
+                    }
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .contentShape(Rectangle())
@@ -156,6 +161,11 @@ struct FileListView: View {
         .contextMenu {
             Button("New Folder…") { browser.showsNewFolderPrompt = true }
             Button("New File…") { browser.requestNewFile() }
+            Menu("New from Template") {
+                ForEach(TemplateService.templates) { template in
+                    Button(template.name) { browser.createFile(from: template) }
+                }
+            }
             Divider()
             Button("Open in Terminal") { TerminalService.open(at: browser.currentURL) }
             Button("Reveal in Finder") {
@@ -172,9 +182,19 @@ struct FileListView: View {
                 }
             }
             .disabled(!browser.canPaste)
+            Menu("Paste As") {
+                Button("Alias") { browser.pasteAsLinks(into: browser.currentURL, symbolic: false) }
+                Button("Symbolic Link") { browser.pasteAsLinks(into: browser.currentURL, symbolic: true) }
+            }
+            .disabled(!browser.canPaste)
             Divider()
             Button(browser.showsHiddenFiles ? "Hide Hidden Files" : "Show Hidden Files") {
                 browser.toggleHiddenFiles()
+            }
+            if !browser.showsHiddenFiles {
+                Button("Reveal Hidden Files for 30 Seconds") {
+                    browser.showHiddenFilesTemporarily()
+                }
             }
             Menu("View As") {
                 ForEach(FileViewMode.allCases) { mode in
@@ -226,20 +246,18 @@ struct FileListView: View {
                     Group {
                         if browser.viewMode == .icons {
                             VStack(spacing: 7) {
-                                Image(nsImage: item.icon)
-                                    .resizable()
-                                    .frame(width: 48, height: 48)
+                                FileThumbnailView(item: item, size: 56)
                                 Text(item.name)
                                     .lineLimit(2)
                                     .multilineTextAlignment(.center)
+                                GitStatusBadge(url: item.url)
                             }
                             .frame(maxWidth: .infinity, minHeight: 82)
                         } else {
                             HStack(spacing: 8) {
-                                Image(nsImage: item.icon)
-                                    .resizable()
-                                    .frame(width: 20, height: 20)
+                                FileThumbnailView(item: item, size: 24)
                                 Text(item.name).lineLimit(1)
+                                GitStatusBadge(url: item.url)
                                 Spacer()
                             }
                             .frame(maxWidth: .infinity)
@@ -273,6 +291,11 @@ struct FileListView: View {
         .contextMenu {
             Button("New Folder…") { browser.showsNewFolderPrompt = true }
             Button("New File…") { browser.requestNewFile() }
+            Menu("New from Template") {
+                ForEach(TemplateService.templates) { template in
+                    Button(template.name) { browser.createFile(from: template) }
+                }
+            }
             Divider()
             Button("Open in Terminal") { TerminalService.open(at: browser.currentURL) }
             Button("Reveal in Finder") {
@@ -286,9 +309,19 @@ struct FileListView: View {
                 }
             }
             .disabled(!browser.canPaste)
+            Menu("Paste As") {
+                Button("Alias") { browser.pasteAsLinks(into: browser.currentURL, symbolic: false) }
+                Button("Symbolic Link") { browser.pasteAsLinks(into: browser.currentURL, symbolic: true) }
+            }
+            .disabled(!browser.canPaste)
             Divider()
             Button(browser.showsHiddenFiles ? "Hide Hidden Files" : "Show Hidden Files") {
                 browser.toggleHiddenFiles()
+            }
+            if !browser.showsHiddenFiles {
+                Button("Reveal Hidden Files for 30 Seconds") {
+                    browser.showHiddenFilesTemporarily()
+                }
             }
             Button("Reload") { browser.reload() }
         }
@@ -403,6 +436,9 @@ struct FileListView: View {
         if item.isDirectory {
             Button("Open in New Tab") { browser.newTab(at: item.url) }
             Button("Open in New Window") { WindowService.open(at: item.url) }
+            if item.isPackage {
+                Button("Show Package Contents") { browser.navigate(to: item.url) }
+            }
         }
         Button("Quick Look") {
             QuickLookService.shared.show(browser.selection.isEmpty ? [item.url] : Array(browser.selection))
@@ -423,6 +459,20 @@ struct FileListView: View {
                         withApplicationAt: application,
                         configuration: NSWorkspace.OpenConfiguration()
                     )
+                }
+            }
+            Divider()
+            Menu("Always Open With") {
+                ForEach(FileActionService.openWithApplications(for: item.url), id: \.self) { application in
+                    Button(application.deletingPathExtension().lastPathComponent) {
+                        Task {
+                            do {
+                                try await FileActionService.setDefaultApplication(application, for: item.url)
+                            } catch {
+                                browser.errorMessage = "Couldn’t change the default app: \(error.localizedDescription)"
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -447,8 +497,21 @@ struct FileListView: View {
             if !browser.selection.contains(item.url) { browser.selection = [item.url] }
             Task { await browser.duplicateSelection(using: operationManager) }
         }
+        Button("Compress to ZIP") {
+            if !browser.selection.contains(item.url) { browser.selection = [item.url] }
+            browser.createArchiveFromSelection()
+        }
+        if ArchiveService.isArchive(item.url) {
+            Button("Extract Here") {
+                browser.selection = [item.url]
+                browser.extractSelectedArchives()
+            }
+        }
         Button("Copy Path") {
             FileActionService.copyPaths(browser.selection.isEmpty ? [item.url] : Array(browser.selection))
+        }
+        Button("Copy Filename") {
+            FileActionService.copyNames(browser.selection.isEmpty ? [item.url] : Array(browser.selection))
         }
         Button("Copy File URL") {
             FileActionService.copyPaths(
@@ -460,9 +523,18 @@ struct FileListView: View {
             if !browser.selection.contains(item.url) { browser.selection = [item.url] }
             browser.calculateSelectedSizes()
         }
-        Button("Calculate SHA-256") {
-            if !browser.selection.contains(item.url) { browser.selection = [item.url] }
-            browser.calculateChecksums()
+        Menu("Calculate Checksums") {
+            ForEach(ChecksumAlgorithm.allCases) { algorithm in
+                Button(algorithm.rawValue) {
+                    if !browser.selection.contains(item.url) { browser.selection = [item.url] }
+                    browser.calculateChecksums(algorithms: [algorithm])
+                }
+            }
+            Divider()
+            Button("All Checksums") {
+                if !browser.selection.contains(item.url) { browser.selection = [item.url] }
+                browser.calculateChecksums(algorithms: ChecksumAlgorithm.allCases)
+            }
         }
         Button("Batch Rename…") {
             if !browser.selection.contains(item.url) { browser.selection = [item.url] }
@@ -471,6 +543,23 @@ struct FileListView: View {
         Button("Create Symbolic Link") {
             if !browser.selection.contains(item.url) { browser.selection = [item.url] }
             browser.createSymbolicLinks()
+        }
+        Button("Create Alias") {
+            if !browser.selection.contains(item.url) { browser.selection = [item.url] }
+            browser.createAliases()
+        }
+        Button("Tags…") {
+            if !browser.selection.contains(item.url) { browser.selection = [item.url] }
+            browser.tagText = ""
+            browser.showsTagPrompt = true
+        }
+        if browser.selection.count == 2 && browser.selection.allSatisfy({
+            (try? $0.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+        }) {
+            Button("Compare Files") {
+                do { try FileActionService.compare(Array(browser.selection)) }
+                catch { browser.errorMessage = "Couldn’t open the comparison tool: \(error.localizedDescription)" }
+            }
         }
         Button("Rename") {
             browser.selection = [item.url]
@@ -486,6 +575,11 @@ struct FileListView: View {
         Divider()
         Button("New Folder…") { browser.showsNewFolderPrompt = true }
         Button("New File…") { browser.requestNewFile() }
+        Menu("New from Template") {
+            ForEach(TemplateService.templates) { template in
+                Button(template.name) { browser.createFile(from: template) }
+            }
+        }
     }
 }
 

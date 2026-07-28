@@ -13,8 +13,9 @@ struct FileTransferResult: Sendable {
     let wasMove: Bool
 }
 
-struct FileOperation: Identifiable, Sendable {
+struct FileOperation: Identifiable, Sendable, Codable {
     let id: UUID
+    let sourceURLs: [URL]
     let sourceNames: [String]
     let destination: URL
     let isMove: Bool
@@ -26,6 +27,7 @@ struct FileOperation: Identifiable, Sendable {
     var error: String?
     var isPaused = false
     var isCancelled = false
+    var isQueued = true
 
     var progress: Double {
         totalBytes == 0 ? (finishedAt == nil ? 0 : 1) : min(1, Double(completedBytes) / Double(totalBytes))
@@ -42,10 +44,27 @@ final class FileOperationManager: ObservableObject, @unchecked Sendable {
     @Published var operations: [FileOperation] = []
     @Published var showsDetails = false
     @Published var conflictPolicy: ConflictPolicy = .keepBoth
+    @Published var maxConcurrentOperations = 2
 
     private var cancelled: Set<UUID> = []
     private var paused: Set<UUID> = []
     private var controls: [UUID: TransferControl] = [:]
+    private var queuedIDs: [UUID] = []
+    private var activeCount = 0
+    private let historyKey = "fileOperationHistory"
+
+    init() {
+        guard let data = UserDefaults.standard.data(forKey: historyKey),
+              let history = try? JSONDecoder().decode([FileOperation].self, from: data) else {
+            return
+        }
+        operations = history.filter { $0.finishedAt != nil }.prefix(50).map { operation in
+            var restored = operation
+            restored.isQueued = false
+            restored.isPaused = false
+            return restored
+        }
+    }
 
     @discardableResult
     func perform(
@@ -54,10 +73,12 @@ final class FileOperationManager: ObservableObject, @unchecked Sendable {
         move: Bool,
         policy overridePolicy: ConflictPolicy? = nil
     ) async -> [FileTransferResult] {
+        guard !sources.isEmpty else { return [] }
         let id = UUID()
         let total = await Task.detached { Self.totalBytes(of: sources) }.value
         operations.insert(FileOperation(
             id: id,
+            sourceURLs: sources,
             sourceNames: sources.map(\.lastPathComponent),
             destination: destination,
             isMove: move,
@@ -67,9 +88,30 @@ final class FileOperationManager: ObservableObject, @unchecked Sendable {
             startedAt: Date()
         ), at: 0)
         showsDetails = true
+        queuedIDs.append(id)
         let control = TransferControl()
         controls[id] = control
         var results: [FileTransferResult] = []
+
+        while activeCount >= maxConcurrentOperations || queuedIDs.first != id {
+            if cancelled.contains(id) {
+                queuedIDs.removeAll { $0 == id }
+                update(id) {
+                    $0.isCancelled = true
+                    $0.isQueued = false
+                    $0.finishedAt = Date()
+                }
+                controls.removeValue(forKey: id)
+                cancelled.remove(id)
+                persistHistory()
+                return []
+            }
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        queuedIDs.removeAll { $0 == id }
+        activeCount += 1
+        update(id) { $0.isQueued = false }
+        defer { activeCount = max(0, activeCount - 1) }
 
         do {
             for source in sources {
@@ -137,6 +179,7 @@ final class FileOperationManager: ObservableObject, @unchecked Sendable {
         paused.remove(id)
         cancelled.remove(id)
         controls.removeValue(forKey: id)
+        persistHistory()
         return results
     }
 
@@ -162,9 +205,44 @@ final class FileOperationManager: ObservableObject, @unchecked Sendable {
         }
     }
 
+    func moveQueued(_ id: UUID, by offset: Int) {
+        guard let index = queuedIDs.firstIndex(of: id) else { return }
+        let destination = min(max(0, index + offset), queuedIDs.count - 1)
+        guard destination != index else { return }
+        queuedIDs.swapAt(index, destination)
+        objectWillChange.send()
+    }
+
+    func retry(_ id: UUID) {
+        guard let operation = operations.first(where: { $0.id == id }),
+              operation.finishedAt != nil,
+              operation.error != nil || operation.isCancelled else { return }
+        Task {
+            _ = await perform(
+                sources: operation.sourceURLs.filter {
+                    FileManager.default.fileExists(atPath: $0.path)
+                },
+                destination: operation.destination,
+                move: operation.isMove
+            )
+        }
+    }
+
+    func clearCompleted() {
+        operations.removeAll { $0.finishedAt != nil }
+        persistHistory()
+    }
+
     private func update(_ id: UUID, _ body: (inout FileOperation) -> Void) {
         guard let index = operations.firstIndex(where: { $0.id == id }) else { return }
         body(&operations[index])
+    }
+
+    private func persistHistory() {
+        let history = Array(operations.filter { $0.finishedAt != nil }.prefix(50))
+        if let data = try? JSONEncoder().encode(history) {
+            UserDefaults.standard.set(data, forKey: historyKey)
+        }
     }
 
     private func resolveTarget(

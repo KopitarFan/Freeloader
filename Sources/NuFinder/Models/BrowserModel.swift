@@ -7,6 +7,7 @@ struct BrowserTab: Identifiable, Equatable {
     var url: URL
     var history: [URL]
     var historyIndex: Int
+    var isPinned = false
 
     var title: String {
         url.lastPathComponent.isEmpty ? url.path : url.lastPathComponent
@@ -58,6 +59,9 @@ final class BrowserModel: ObservableObject {
     @Published var showsSizeColumn = true
     @Published var showsModifiedColumn = true
     @Published var showsBatchRenamePrompt = false
+    @Published var showsTagPrompt = false
+    @Published var showsCommandPalette = false
+    @Published var tagText = ""
     @Published var detailTitle: String?
     @Published var detailText = ""
 
@@ -84,8 +88,15 @@ final class BrowserModel: ObservableObject {
             .map { URL(fileURLWithPath: $0) }
             .filter { FileManager.default.fileExists(atPath: $0.path) } ?? [] : []
         let initialURLs = initialURL.map { [$0] } ?? (restored.isEmpty ? [home] : restored)
+        let pinnedPaths = Set(UserDefaults.standard.stringArray(forKey: "pinnedTabPaths") ?? [])
         let initialTabs = initialURLs.map {
-            BrowserTab(id: UUID(), url: $0, history: [$0], historyIndex: 0)
+            BrowserTab(
+                id: UUID(),
+                url: $0,
+                history: [$0],
+                historyIndex: 0,
+                isPinned: pinnedPaths.contains($0.path)
+            )
         }
         let restoredActiveIndex = restoresSession
             ? min(UserDefaults.standard.integer(forKey: "activeTabIndex"), initialTabs.count - 1)
@@ -195,6 +206,7 @@ final class BrowserModel: ObservableObject {
 
     func closeTab(_ id: UUID) {
         guard tabs.count > 1, let index = tabs.firstIndex(where: { $0.id == id }) else { return }
+        guard !tabs[index].isPinned else { return }
         let closed = tabs.remove(at: index)
         closedTabs.append(closed)
         if activeTabID == id {
@@ -205,9 +217,40 @@ final class BrowserModel: ObservableObject {
 
     func reopenClosedTab() {
         guard var tab = closedTabs.popLast() else { return }
-        tab = BrowserTab(id: UUID(), url: tab.url, history: tab.history, historyIndex: tab.historyIndex)
+        tab = BrowserTab(
+            id: UUID(),
+            url: tab.url,
+            history: tab.history,
+            historyIndex: tab.historyIndex,
+            isPinned: false
+        )
         tabs.append(tab)
         selectTab(tab.id)
+        persistTabs()
+    }
+
+    func duplicateTab(_ id: UUID) {
+        guard let source = tabs.first(where: { $0.id == id }) else { return }
+        let copy = BrowserTab(
+            id: UUID(),
+            url: source.url,
+            history: source.history,
+            historyIndex: source.historyIndex
+        )
+        tabs.append(copy)
+        selectTab(copy.id)
+    }
+
+    func togglePinnedTab(_ id: UUID) {
+        guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
+        tabs[index].isPinned.toggle()
+        let tab = tabs.remove(at: index)
+        let insertionIndex = tabs.firstIndex(where: { !$0.isPinned }) ?? tabs.endIndex
+        if tab.isPinned {
+            tabs.insert(tab, at: insertionIndex)
+        } else {
+            tabs.append(tab)
+        }
         persistTabs()
     }
 
@@ -399,7 +442,7 @@ final class BrowserModel: ObservableObject {
         }
     }
 
-    func calculateChecksums() {
+    func calculateChecksums(algorithms: [ChecksumAlgorithm] = [.sha256]) {
         let urls = selection.filter {
             (try? $0.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
         }
@@ -407,58 +450,121 @@ final class BrowserModel: ObservableObject {
             errorMessage = "Select one or more regular files to calculate checksums."
             return
         }
-        detailTitle = "Calculating SHA-256…"
+        detailTitle = "Calculating Checksums…"
         detailText = ""
         Task {
             let lines = await Task.detached {
-                urls.sorted { $0.path < $1.path }.map { url in
-                    do { return "\(try FileActionService.sha256(of: url))  \(url.lastPathComponent)" }
-                    catch { return "ERROR  \(url.lastPathComponent): \(error.localizedDescription)" }
+                urls.sorted { $0.path < $1.path }.flatMap { url in
+                    algorithms.map { algorithm in
+                        do {
+                            return "\(algorithm.rawValue)  \(try FileActionService.checksum(of: url, algorithm: algorithm))  \(url.lastPathComponent)"
+                        } catch {
+                            return "\(algorithm.rawValue)  ERROR  \(url.lastPathComponent): \(error.localizedDescription)"
+                        }
+                    }
                 }
             }.value
-            detailTitle = "SHA-256 Checksums"
+            detailTitle = "Checksums"
             detailText = lines.joined(separator: "\n")
         }
     }
 
     func batchRename(pattern: String) {
+        var request = BatchRenameRequest()
+        request.pattern = pattern
+        batchRename(request)
+    }
+
+    func batchRename(_ request: BatchRenameRequest) {
         let sources = displayedItems.filter { selection.contains($0.url) }
         guard !sources.isEmpty else { return }
-        var completed: [(URL, URL)] = []
+        let targets: [URL]
         do {
-            for (offset, item) in sources.enumerated() {
-                let ext = item.url.pathExtension
-                let stem = item.url.deletingPathExtension().lastPathComponent
-                var newName = pattern
-                    .replacingOccurrences(of: "{name}", with: stem)
-                    .replacingOccurrences(of: "{index}", with: String(offset + 1))
-                if !ext.isEmpty && (newName as NSString).pathExtension.isEmpty {
-                    newName += ".\(ext)"
-                }
-                guard !newName.contains("/"), !newName.isEmpty else {
+            targets = try sources.enumerated().map { offset, item in
+                guard let newName = Self.renamedFilename(
+                    for: item,
+                    request: request,
+                    index: request.startIndex + offset
+                ) else {
                     throw CocoaError(.fileWriteInvalidFileName)
                 }
-                let target = item.url.deletingLastPathComponent().appendingPathComponent(newName)
-                guard !FileManager.default.fileExists(atPath: target.path) else {
+                return item.url.deletingLastPathComponent().appendingPathComponent(newName)
+            }
+            guard Set(targets).count == targets.count else {
+                throw CocoaError(.fileWriteFileExists)
+            }
+            let sourceSet = Set(sources.map(\.url))
+            for target in targets where !sourceSet.contains(target) {
+                if FileManager.default.fileExists(atPath: target.path) {
                     throw CocoaError(.fileWriteFileExists)
                 }
-                try FileManager.default.moveItem(at: item.url, to: target)
-                completed.append((item.url, target))
+            }
+
+            let temporary = sources.map {
+                $0.url.deletingLastPathComponent()
+                    .appendingPathComponent(".freeloader-rename-\(UUID().uuidString)")
+            }
+            var staged = 0
+            var finalized = 0
+            do {
+                for index in sources.indices {
+                    try FileManager.default.moveItem(at: sources[index].url, to: temporary[index])
+                    staged += 1
+                }
+                for index in sources.indices {
+                    try FileManager.default.moveItem(at: temporary[index], to: targets[index])
+                    finalized += 1
+                }
+            } catch {
+                for index in 0..<finalized where FileManager.default.fileExists(atPath: targets[index].path) {
+                    try? FileManager.default.moveItem(at: targets[index], to: sources[index].url)
+                }
+                for index in 0..<staged where FileManager.default.fileExists(atPath: temporary[index].path) {
+                    try? FileManager.default.moveItem(at: temporary[index], to: sources[index].url)
+                }
+                throw error
             }
             reload()
-            selection = Set(completed.map(\.1))
+            selection = Set(targets)
             registerUndo { [weak self] in
-                for (source, target) in completed.reversed() {
-                    try? FileManager.default.moveItem(at: target, to: source)
+                for index in sources.indices.reversed() {
+                    try? FileManager.default.moveItem(at: targets[index], to: sources[index].url)
                 }
                 self?.reload()
             }
         } catch {
-            for (source, target) in completed.reversed() {
-                try? FileManager.default.moveItem(at: target, to: source)
-            }
             errorMessage = "Batch rename was rolled back: \(error.localizedDescription)"
         }
+    }
+
+    nonisolated static func renamedFilename(
+        for item: FileItem,
+        request: BatchRenameRequest,
+        index: Int
+    ) -> String? {
+        let originalExtension = item.url.pathExtension
+        var stem = item.url.deletingPathExtension().lastPathComponent
+        if !request.find.isEmpty {
+            stem = stem.replacingOccurrences(of: request.find, with: request.replacement)
+        }
+        switch request.letterCase {
+        case .unchanged: break
+        case .lowercase: stem = stem.lowercased()
+        case .uppercase: stem = stem.uppercased()
+        case .title: stem = stem.capitalized
+        }
+        let chosenExtension = request.extensionOverride
+            .trimmingCharacters(in: CharacterSet(charactersIn: ". "))
+        let ext = chosenExtension.isEmpty ? originalExtension : chosenExtension
+        var name = request.pattern
+            .replacingOccurrences(of: "{name}", with: stem)
+            .replacingOccurrences(of: "{index}", with: String(index))
+            .replacingOccurrences(of: "{ext}", with: ext)
+        if !ext.isEmpty && (name as NSString).pathExtension.isEmpty {
+            name += ".\(ext)"
+        }
+        guard !name.isEmpty, !name.contains("/") else { return nil }
+        return name
     }
 
     func createSymbolicLinks() {
@@ -481,6 +587,130 @@ final class BrowserModel: ObservableObject {
         } catch {
             links.forEach { try? FileManager.default.removeItem(at: $0) }
             errorMessage = error.localizedDescription
+        }
+    }
+
+    func createAliases() {
+        let sources = Array(selection)
+        guard !sources.isEmpty else { return }
+        var aliases: [URL] = []
+        do {
+            for source in sources {
+                let desired = currentURL.appendingPathComponent("\(source.lastPathComponent) alias")
+                let alias = FileOperationManager.uniqueDestination(for: desired, in: currentURL)
+                let data = try source.bookmarkData(options: .suitableForBookmarkFile)
+                try URL.writeBookmarkData(data, to: alias)
+                aliases.append(alias)
+            }
+            reload()
+            selection = Set(aliases)
+            registerUndo { [weak self] in
+                aliases.forEach { try? FileManager.default.removeItem(at: $0) }
+                self?.reload()
+            }
+        } catch {
+            aliases.forEach { try? FileManager.default.removeItem(at: $0) }
+            errorMessage = "Couldn’t create the alias: \(error.localizedDescription)"
+        }
+    }
+
+    func createFile(from template: FileTemplate) {
+        let desired = currentURL.appendingPathComponent(template.suggestedFilename)
+        let destination = FileOperationManager.uniqueDestination(for: desired, in: currentURL)
+        do {
+            try template.contents.write(to: destination, options: .atomic)
+            reload()
+            selection = [destination]
+            registerUndo { [weak self] in
+                try? FileManager.default.removeItem(at: destination)
+                self?.reload()
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func applyTagsFromPrompt() {
+        let tags = tagText.split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        do {
+            for url in selection {
+                try FileActionService.setFinderTags(tags, on: url)
+            }
+            reload()
+        } catch {
+            errorMessage = "Couldn’t update tags: \(error.localizedDescription)"
+        }
+    }
+
+    func showHiddenFilesTemporarily() {
+        showsHiddenFiles = true
+        reload()
+        Task {
+            try? await Task.sleep(for: .seconds(30))
+            guard !Task.isCancelled else { return }
+            showsHiddenFiles = false
+            reload()
+        }
+    }
+
+    func createArchiveFromSelection() {
+        let sources = displayedItems.filter { selection.contains($0.url) }.map(\.url)
+        guard !sources.isEmpty else { return }
+        let baseName = sources.count == 1 ? sources[0].deletingPathExtension().lastPathComponent : "Archive"
+        let desired = currentURL.appendingPathComponent("\(baseName).zip")
+        let destination = FileOperationManager.uniqueDestination(for: desired, in: currentURL)
+        detailTitle = "Creating Archive…"
+        detailText = ""
+        Task {
+            do {
+                try await Task.detached {
+                    try ArchiveService.createZip(from: sources, at: destination)
+                }.value
+                detailTitle = nil
+                reload()
+                selection = [destination]
+                registerUndo { [weak self] in
+                    try? FileManager.default.removeItem(at: destination)
+                    self?.reload()
+                }
+            } catch {
+                detailTitle = nil
+                errorMessage = "Couldn’t create the archive: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    func extractSelectedArchives() {
+        let archives = selection.filter(ArchiveService.isArchive)
+        guard !archives.isEmpty else { return }
+        detailTitle = "Extracting Archive…"
+        detailText = ""
+        Task {
+            var destinations: [URL] = []
+            do {
+                for archive in archives {
+                    let stem = archive.deletingPathExtension().lastPathComponent
+                    let desired = currentURL.appendingPathComponent(stem)
+                    let destination = FileOperationManager.uniqueDestination(for: desired, in: currentURL)
+                    try await Task.detached {
+                        try ArchiveService.extract(archive, to: destination)
+                    }.value
+                    destinations.append(destination)
+                }
+                detailTitle = nil
+                reload()
+                selection = Set(destinations)
+                registerUndo { [weak self] in
+                    destinations.forEach { try? FileManager.default.removeItem(at: $0) }
+                    self?.reload()
+                }
+            } catch {
+                destinations.forEach { try? FileManager.default.removeItem(at: $0) }
+                detailTitle = nil
+                errorMessage = "Couldn’t extract the archive: \(error.localizedDescription)"
+            }
         }
     }
 
@@ -543,6 +773,37 @@ final class BrowserModel: ObservableObject {
             cutItems.removeAll()
         }
         reload()
+    }
+
+    func pasteAsLinks(into destination: URL, symbolic: Bool) {
+        let sources = clipboard
+        guard !sources.isEmpty else { return }
+        var created: [URL] = []
+        do {
+            for source in sources {
+                if symbolic {
+                    let desired = destination.appendingPathComponent(source.lastPathComponent)
+                    let link = FileOperationManager.uniqueDestination(for: desired, in: destination)
+                    try FileManager.default.createSymbolicLink(at: link, withDestinationURL: source)
+                    created.append(link)
+                } else {
+                    let desired = destination.appendingPathComponent("\(source.lastPathComponent) alias")
+                    let alias = FileOperationManager.uniqueDestination(for: desired, in: destination)
+                    let data = try source.bookmarkData(options: .suitableForBookmarkFile)
+                    try URL.writeBookmarkData(data, to: alias)
+                    created.append(alias)
+                }
+            }
+            reload()
+            selection = Set(created)
+            registerUndo { [weak self] in
+                created.forEach { try? FileManager.default.removeItem(at: $0) }
+                self?.reload()
+            }
+        } catch {
+            created.forEach { try? FileManager.default.removeItem(at: $0) }
+            errorMessage = "Couldn’t paste the link: \(error.localizedDescription)"
+        }
     }
 
     func requestNewFile() { showsNewFilePrompt = true }
@@ -669,6 +930,10 @@ final class BrowserModel: ObservableObject {
     private func persistTabs() {
         guard persistsSession else { return }
         UserDefaults.standard.set(tabs.map { $0.url.path }, forKey: "openTabPaths")
+        UserDefaults.standard.set(
+            tabs.filter(\.isPinned).map { $0.url.path },
+            forKey: "pinnedTabPaths"
+        )
         UserDefaults.standard.set(
             tabs.firstIndex(where: { $0.id == activeTabID }) ?? 0,
             forKey: "activeTabIndex"
