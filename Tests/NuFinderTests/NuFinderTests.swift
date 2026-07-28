@@ -10,6 +10,33 @@ private final class ByteCounter: @unchecked Sendable {
 }
 
 struct NuFinderTests {
+    @Test func recognizesFolderSymlinkAsNavigableDirectory() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let target = root.appendingPathComponent("target", isDirectory: true)
+        let link = root.appendingPathComponent("linked folder")
+        try FileManager.default.createDirectory(at: target, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let item = try #require(FileItem.load(link))
+        #expect(item.isSymbolicLink)
+        #expect(item.isDirectory)
+    }
+
+    @Test @MainActor func navigationResolvesFolderSymlink() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let target = root.appendingPathComponent("target", isDirectory: true)
+        let link = root.appendingPathComponent("linked folder")
+        try FileManager.default.createDirectory(at: target, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let browser = BrowserModel(initialURL: root, restoresSession: false)
+        browser.navigate(to: link)
+        #expect(browser.currentURL == target.standardizedFileURL)
+        #expect(browser.addressText == target.path)
+    }
+
     @Test func countsNestedFileBytes() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

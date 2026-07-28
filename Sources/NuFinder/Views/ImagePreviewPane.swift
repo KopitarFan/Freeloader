@@ -34,11 +34,13 @@ struct ImagePreviewPane: View {
                 }
                 .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 10))
             } else {
-                Group {
+                ZStack {
                     if let preview {
                         Image(nsImage: preview)
                             .resizable()
                             .scaledToFit()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .padding(10)
                     } else {
                         ProgressView()
                     }
@@ -60,7 +62,13 @@ struct ImagePreviewPane: View {
             }
         }
         .padding(14)
-        .frame(minWidth: 220, idealWidth: 280, maxWidth: 360)
+        .frame(
+            minWidth: 260,
+            idealWidth: 340,
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .topLeading
+        )
         .task(id: item.url) {
             preview = nil
             textPreview = nil
