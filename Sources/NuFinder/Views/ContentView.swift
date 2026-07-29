@@ -149,8 +149,11 @@ struct ContentView: View {
     }
 
     private func previewItem(in model: BrowserModel) -> FileItem? {
-        guard model.selection.count == 1,
-              let url = model.selection.first,
+        let selectedURL = model.selection.count == 1 ? model.selection.first : nil
+        let previewURL = model.isMarqueeSelecting
+            ? model.marqueePreviewURL
+            : selectedURL
+        guard let url = previewURL,
               let item = model.displayedItems.first(where: { $0.url == url }),
               !item.isDirectory else {
             return nil
