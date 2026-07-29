@@ -28,6 +28,8 @@ final class BrowserModel: ObservableObject {
     @Published var currentURL: URL
     @Published var items: [FileItem] = []
     @Published var selection: Set<URL> = []
+    @Published private(set) var isMarqueeSelecting = false
+    @Published private(set) var marqueePreviewURL: URL?
     @Published var addressText = ""
     @Published var errorMessage: String?
     @Published var showsTree = false
@@ -426,6 +428,21 @@ final class BrowserModel: ObservableObject {
     }
 
     func selectAll() { selection = Set(displayedItems.map(\.url)) }
+
+    func clearSelection() {
+        selection.removeAll()
+        selectionAnchor = nil
+    }
+
+    func beginMarqueeSelection() {
+        marqueePreviewURL = selection.count == 1 ? selection.first : nil
+        isMarqueeSelecting = true
+    }
+
+    func endMarqueeSelection() {
+        isMarqueeSelecting = false
+        marqueePreviewURL = nil
+    }
 
     func invertSelection() {
         selection = Set(displayedItems.map(\.url)).subtracting(selection)

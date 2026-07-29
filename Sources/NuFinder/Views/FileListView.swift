@@ -7,6 +7,11 @@ struct FileListView: View {
     @State private var springOpenTask: Task<Void, Never>?
     @State private var typeSelectionBuffer = ""
     @State private var typeSelectionResetTask: Task<Void, Never>?
+    @State private var tileFrames: [URL: CGRect] = [:]
+    @State private var marqueeRect: CGRect?
+    @State private var marqueeBaseSelection: Set<URL> = []
+    @State private var isMarqueeSelecting = false
+    @State private var marqueeAddsToSelection = false
 
     private static let byteFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter()
@@ -243,46 +248,24 @@ struct FileListView: View {
                 spacing: 8
             ) {
                 ForEach(browser.displayedItems) { item in
-                    Group {
-                        if browser.viewMode == .icons {
-                            VStack(spacing: 7) {
-                                FileThumbnailView(item: item, size: 56)
-                                Text(item.name)
-                                    .lineLimit(2)
-                                    .multilineTextAlignment(.center)
-                                GitStatusBadge(url: item.url)
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 82)
-                        } else {
-                            HStack(spacing: 8) {
-                                FileThumbnailView(item: item, size: 24)
-                                Text(item.name).lineLimit(1)
-                                GitStatusBadge(url: item.url)
-                                Spacer()
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .padding(7)
-                    .background(selectionColor(for: item.url), in: RoundedRectangle(cornerRadius: 7))
-                    .contentShape(Rectangle())
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("\(item.name), \(item.kind)")
-                    .accessibilityAddTraits(browser.selection.contains(item.url) ? .isSelected : [])
-                    .onTapGesture { select(item.url) }
-                    .simultaneousGesture(TapGesture(count: 2).onEnded { activate(item) })
-                    .draggable(item.url)
-                    .dropDestination(for: URL.self) { urls, _ in
-                        guard item.isDirectory else { return false }
-                        moveDroppedItems(urls, to: item.url)
-                        return true
-                    } isTargeted: { targeted in
-                        scheduleSpringOpen(item, targeted: targeted)
-                    }
-                    .contextMenu { contextMenu(for: item) }
+                    tile(for: item)
                 }
             }
             .padding(10)
+        }
+        .coordinateSpace(name: "fileTilePane")
+        .onPreferenceChange(TileFramePreferenceKey.self) { tileFrames = $0 }
+        .simultaneousGesture(blankAreaTapGesture)
+        .simultaneousGesture(marqueeSelectionGesture)
+        .overlay(alignment: .topLeading) {
+            if let marqueeRect {
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.accentColor.opacity(0.12))
+                    .stroke(Color.accentColor.opacity(0.75), lineWidth: 1)
+                    .frame(width: marqueeRect.width, height: marqueeRect.height)
+                    .offset(x: marqueeRect.minX, y: marqueeRect.minY)
+                    .allowsHitTesting(false)
+            }
         }
         .dropDestination(for: URL.self) { urls, _ in
             moveDroppedItems(urls, to: browser.currentURL)
@@ -348,6 +331,50 @@ struct FileListView: View {
         }
     }
 
+    private func tile(for item: FileItem) -> some View {
+        tileLabel(for: item)
+            .padding(7)
+            .background(selectionColor(for: item.url), in: RoundedRectangle(cornerRadius: 7))
+            .modifier(TileFrameReporter(url: item.url))
+            .contentShape(Rectangle())
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(item.name), \(item.kind)")
+            .accessibilityAddTraits(browser.selection.contains(item.url) ? .isSelected : [])
+            .onTapGesture { select(item.url) }
+            .simultaneousGesture(TapGesture(count: 2).onEnded { activate(item) })
+            .draggable(item.url)
+            .dropDestination(for: URL.self) { urls, _ in
+                guard item.isDirectory else { return false }
+                moveDroppedItems(urls, to: item.url)
+                return true
+            } isTargeted: { targeted in
+                scheduleSpringOpen(item, targeted: targeted)
+            }
+            .contextMenu { contextMenu(for: item) }
+    }
+
+    @ViewBuilder
+    private func tileLabel(for item: FileItem) -> some View {
+        if browser.viewMode == .icons {
+            VStack(spacing: 7) {
+                FileThumbnailView(item: item, size: 56)
+                Text(item.name)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                GitStatusBadge(url: item.url)
+            }
+            .frame(maxWidth: .infinity, minHeight: 82)
+        } else {
+            HStack(spacing: 8) {
+                FileThumbnailView(item: item, size: 24)
+                Text(item.name).lineLimit(1)
+                GitStatusBadge(url: item.url)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
     @EnvironmentObject private var operationManager: FileOperationManager
 
     private func isCut(_ url: URL) -> Bool {
@@ -371,6 +398,60 @@ struct FileListView: View {
             command: modifiers.contains(.command),
             shift: modifiers.contains(.shift)
         )
+    }
+
+    private var marqueeSelectionGesture: some Gesture {
+        DragGesture(minimumDistance: 3, coordinateSpace: .named("fileTilePane"))
+            .onChanged { value in
+                if !isMarqueeSelecting {
+                    // A drag that begins on a file belongs to that file's existing
+                    // drag-and-drop gesture. Marquee selection starts in empty space.
+                    guard !tileFrames.values.contains(where: {
+                        $0.insetBy(dx: -2, dy: -2).contains(value.startLocation)
+                    }) else {
+                        return
+                    }
+                    isMarqueeSelecting = true
+                    browser.beginMarqueeSelection()
+                    marqueeBaseSelection = browser.selection
+                    marqueeAddsToSelection =
+                        NSApp.currentEvent?.modifierFlags.contains(.command) == true
+                }
+
+                let rect = CGRect(
+                    x: min(value.startLocation.x, value.location.x),
+                    y: min(value.startLocation.y, value.location.y),
+                    width: abs(value.location.x - value.startLocation.x),
+                    height: abs(value.location.y - value.startLocation.y)
+                )
+                marqueeRect = rect
+                let enclosed = Set(tileFrames.compactMap { url, frame in
+                    frame.intersects(rect) ? url : nil
+                })
+                browser.selection = marqueeAddsToSelection
+                    ? marqueeBaseSelection.union(enclosed)
+                    : enclosed
+            }
+            .onEnded { _ in
+                marqueeRect = nil
+                marqueeBaseSelection.removeAll()
+                isMarqueeSelecting = false
+                marqueeAddsToSelection = false
+                browser.endMarqueeSelection()
+            }
+    }
+
+    private var blankAreaTapGesture: some Gesture {
+        SpatialTapGesture(coordinateSpace: .named("fileTilePane"))
+            .onEnded { value in
+                guard NSApp.currentEvent?.modifierFlags.intersection([.command, .shift]).isEmpty != false,
+                      !tileFrames.values.contains(where: {
+                          $0.insetBy(dx: -2, dy: -2).contains(value.location)
+                      }) else {
+                    return
+                }
+                browser.clearSelection()
+            }
     }
 
     private func activate(_ item: FileItem) {
@@ -578,6 +659,29 @@ struct FileListView: View {
         Menu("New from Template") {
             ForEach(TemplateService.templates) { template in
                 Button(template.name) { browser.createFile(from: template) }
+            }
+        }
+    }
+}
+
+private struct TileFramePreferenceKey: PreferenceKey {
+    static let defaultValue: [URL: CGRect] = [:]
+
+    static func reduce(value: inout [URL: CGRect], nextValue: () -> [URL: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
+    }
+}
+
+private struct TileFrameReporter: ViewModifier {
+    let url: URL
+
+    func body(content: Content) -> some View {
+        content.background {
+            GeometryReader { geometry in
+                Color.clear.preference(
+                    key: TileFramePreferenceKey.self,
+                    value: [url: geometry.frame(in: .named("fileTilePane"))]
+                )
             }
         }
     }
