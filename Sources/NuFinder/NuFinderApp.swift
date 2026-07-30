@@ -118,6 +118,8 @@ struct FreeloaderApp: App {
                     .disabled(!WindowService.canReopenClosedWindow)
                 Button("Go to Folder…") { browser.requestAddressFocus() }
                     .keyboardShortcut("g", modifiers: [.command, .shift])
+                Button("Connect to Server…") { browser.requestConnectToServer() }
+                    .keyboardShortcut("k")
                 Divider()
                 Button("New File") { browser.requestNewFile() }
                     .keyboardShortcut("n", modifiers: [.command, .option])

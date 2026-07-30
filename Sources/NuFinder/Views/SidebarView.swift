@@ -67,7 +67,7 @@ struct SidebarView: View {
                                     browser.navigate(to: volume.url)
                                 } label: {
                                     VStack(alignment: .leading, spacing: 3) {
-                                        Label(volume.name, systemImage: volume.isRemovable ? "externaldrive" : "internaldrive")
+                                        Label(volume.name, systemImage: volume.iconName)
                                             .lineLimit(1)
                                         if let fraction = volume.usedFraction {
                                             ProgressView(value: fraction)
@@ -77,20 +77,26 @@ struct SidebarView: View {
                                 }
                                 .buttonStyle(.plain)
                                 Spacer(minLength: 2)
-                                if volume.isEjectable {
+                                if volume.canDisconnect {
                                     Button {
                                         requestEject(volume)
                                     } label: {
                                         Image(systemName: "eject")
                                     }
                                     .buttonStyle(.borderless)
-                                    .help("Eject \(volume.name)")
+                                    .help("\(volume.isNetwork ? "Disconnect" : "Eject") \(volume.name)")
                                 }
                             }
                             .dropDestination(for: URL.self) { urls, _ in
                                 moveDroppedItems(urls, to: volume.url)
                             }
                         }
+                        Button {
+                            browser.requestConnectToServer()
+                        } label: {
+                            Label("Connect to Server…", systemImage: "network.badge.shield.half.filled")
+                        }
+                        .buttonStyle(.plain)
                     }
                     if browser.showsTree {
                         Section("Folders") {
@@ -123,6 +129,16 @@ struct SidebarView: View {
         .task {
             refreshVolumes()
         }
+        .onReceive(NSWorkspace.shared.notificationCenter.publisher(
+            for: NSWorkspace.didMountNotification
+        )) { _ in
+            refreshVolumes()
+        }
+        .onReceive(NSWorkspace.shared.notificationCenter.publisher(
+            for: NSWorkspace.didUnmountNotification
+        )) { _ in
+            refreshVolumes()
+        }
         .confirmationDialog(
             "Transfers are still running",
             isPresented: Binding(
@@ -131,13 +147,14 @@ struct SidebarView: View {
             ),
             titleVisibility: .visible
         ) {
-            Button("Eject Anyway", role: .destructive) {
+            Button(pendingEject?.isNetwork == true ? "Disconnect Anyway" : "Eject Anyway",
+                   role: .destructive) {
                 if let volume = pendingEject { eject(volume) }
                 pendingEject = nil
             }
             Button("Cancel", role: .cancel) { pendingEject = nil }
         } message: {
-            Text("Ejecting now may interrupt a file operation using this drive.")
+            Text("Disconnecting or ejecting now may interrupt a file operation using this volume.")
         }
     }
 
@@ -169,7 +186,8 @@ struct SidebarView: View {
     private func refreshVolumes() {
         let keys: Set<URLResourceKey> = [
             .volumeNameKey, .volumeIsRemovableKey, .volumeIsEjectableKey,
-            .volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey
+            .volumeIsLocalKey, .volumeTotalCapacityKey,
+            .volumeAvailableCapacityForImportantUsageKey
         ]
         volumes = (FileManager.default.mountedVolumeURLs(
             includingResourceValuesForKeys: Array(keys),
@@ -181,6 +199,7 @@ struct SidebarView: View {
                 name: values.volumeName ?? url.lastPathComponent,
                 isRemovable: values.volumeIsRemovable ?? false,
                 isEjectable: values.volumeIsEjectable ?? false,
+                isNetwork: values.volumeIsLocal == false,
                 totalBytes: values.volumeTotalCapacity.map(Int64.init),
                 availableBytes: values.volumeAvailableCapacityForImportantUsage
             )
@@ -196,6 +215,18 @@ struct SidebarView: View {
     }
 
     private func eject(_ volume: MountedVolume) {
+        if volume.isNetwork {
+            FileManager.default.unmountVolume(at: volume.url, options: []) { error in
+                Task { @MainActor in
+                    if let error {
+                        browser.errorMessage =
+                            "Couldn’t disconnect \(volume.name): \(error.localizedDescription)"
+                    }
+                    refreshVolumes()
+                }
+            }
+            return
+        }
         Task {
             do {
                 try NSWorkspace.shared.unmountAndEjectDevice(at: volume.url)
@@ -240,10 +271,16 @@ private struct MountedVolume: Identifiable {
     let name: String
     let isRemovable: Bool
     let isEjectable: Bool
+    let isNetwork: Bool
     let totalBytes: Int64?
     let availableBytes: Int64?
 
     var id: URL { url }
+    var canDisconnect: Bool { isNetwork || isEjectable }
+    var iconName: String {
+        if isNetwork { return "network" }
+        return isRemovable ? "externaldrive" : "internaldrive"
+    }
 
     var usedFraction: Double? {
         guard let totalBytes, let availableBytes, totalBytes > 0 else { return nil }
