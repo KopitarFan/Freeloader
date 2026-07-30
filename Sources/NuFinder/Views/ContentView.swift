@@ -97,10 +97,7 @@ struct ContentView: View {
             FileInfoView(item: item)
                 .environmentObject(browser)
         }
-        .sheet(isPresented: Binding(
-            get: { browser.detailTitle != nil },
-            set: { if !$0 { browser.detailTitle = nil } }
-        )) {
+        .sheet(isPresented: detailPresented) {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
                     Text(browser.detailTitle ?? "Details").font(.title2.bold())
@@ -129,7 +126,7 @@ struct ContentView: View {
         VStack(spacing: 0) {
             TabBarView()
             Divider()
-            AddressBarRow()
+            AddressBarRow(showsPaneNavigation: showsSplitPane)
             Divider()
             SearchBarView()
             Divider()
@@ -168,35 +165,37 @@ struct ContentView: View {
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
         ToolbarItemGroup(placement: .navigation) {
-            Menu {
-                ForEach(browser.backHistory.reversed(), id: \.self) { url in
-                    Button(url.path) { browser.navigateToHistory(url) }
+            if !showsSplitPane {
+                Menu {
+                    ForEach(browser.backHistory.reversed(), id: \.self) { url in
+                        Button(url.path) { browser.navigateToHistory(url) }
+                    }
+                } label: {
+                    FreeloaderToolbarIcon(systemName: "chevron.left")
+                } primaryAction: {
+                    browser.goBack()
                 }
-            } label: {
-                FreeloaderToolbarIcon(systemName: "chevron.left")
-            } primaryAction: {
-                browser.goBack()
-            }
-            .disabled(!browser.canGoBack)
-            .help("Back; open the menu for history")
+                .disabled(!browser.canGoBack)
+                .help("Back; open the menu for history")
 
-            Menu {
-                ForEach(browser.forwardHistory.reversed(), id: \.self) { url in
-                    Button(url.path) { browser.navigateToHistory(url) }
+                Menu {
+                    ForEach(browser.forwardHistory.reversed(), id: \.self) { url in
+                        Button(url.path) { browser.navigateToHistory(url) }
+                    }
+                } label: {
+                    FreeloaderToolbarIcon(systemName: "chevron.right")
+                } primaryAction: {
+                    browser.goForward()
                 }
-            } label: {
-                FreeloaderToolbarIcon(systemName: "chevron.right")
-            } primaryAction: {
-                browser.goForward()
-            }
-            .disabled(!browser.canGoForward)
-            .help("Forward; open the menu for history")
+                .disabled(!browser.canGoForward)
+                .help("Forward; open the menu for history")
 
-            Button(action: browser.goUp) {
-                FreeloaderToolbarIcon(systemName: "arrow.up")
+                Button(action: browser.goUp) {
+                    FreeloaderToolbarIcon(systemName: "arrow.up")
+                }
+                .buttonStyle(.plain)
+                .help("Parent Folder")
             }
-            .buttonStyle(.plain)
-            .help("Parent Folder")
         }
         ToolbarItemGroup {
             Menu {
@@ -255,6 +254,15 @@ struct ContentView: View {
                 .help("File Operations")
             }
         }
+    }
+
+    private var detailPresented: Binding<Bool> {
+        Binding(
+            get: { browser.detailTitle != nil },
+            set: { isPresented in
+                if !isPresented { browser.detailTitle = nil }
+            }
+        )
     }
 
     private func viewModeIcon(_ mode: FileViewMode) -> String {

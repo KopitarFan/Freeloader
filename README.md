@@ -10,7 +10,7 @@ the file-management features that should not require a subscription—or a
 support group.
 
 [Website](https://kopitarfan.github.io/Freeloader/) ·
-[Download Freeloader 0.2.6](https://github.com/KopitarFan/Freeloader/releases/download/v0.2.6/Freeloader-0.2.6.dmg)
+[Download Freeloader 0.2.7](https://github.com/KopitarFan/Freeloader/releases/download/v0.2.7/Freeloader-0.2.7.dmg)
 
 Support: [miguel@miguelrodriguez.net](mailto:miguel@miguelrodriguez.net)
 
