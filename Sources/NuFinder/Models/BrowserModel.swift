@@ -92,8 +92,8 @@ final class BrowserModel: ObservableObject {
         persistsSession = restoresSession
         let home = FileManager.default.homeDirectoryForCurrentUser
         let restored = restoresSession ? UserDefaults.standard.stringArray(forKey: "openTabPaths")?
-            .map { URL(fileURLWithPath: $0) }
-            .filter { FileManager.default.fileExists(atPath: $0.path) } ?? [] : []
+            .filter(Self.isRestorableSessionPath)
+            .map(Self.storedDirectoryURL) ?? [] : []
         let initialURLs = initialURL.map { [$0] } ?? (restored.isEmpty ? [home] : restored)
         let pinnedPaths = Set(UserDefaults.standard.stringArray(forKey: "pinnedTabPaths") ?? [])
         let initialTabs = initialURLs.map {
@@ -114,14 +114,26 @@ final class BrowserModel: ObservableObject {
         history = initialTabs[restoredActiveIndex].history
         historyIndex = initialTabs[restoredActiveIndex].historyIndex
         recentLocations = UserDefaults.standard.stringArray(forKey: "recentLocationPaths")?
-            .map { URL(fileURLWithPath: $0) }
-            .filter { FileManager.default.fileExists(atPath: $0.path) } ?? []
+            .map(Self.storedDirectoryURL) ?? []
         savedSearches = UserDefaults.standard.stringArray(forKey: "savedSearches") ?? []
         recentServers = UserDefaults.standard.stringArray(forKey: "recentSMBServers") ?? []
         customFavorites = UserDefaults.standard.stringArray(forKey: "customFavoritePaths")?
-            .map { URL(fileURLWithPath: $0) }
-            .filter { FileManager.default.fileExists(atPath: $0.path) } ?? []
+            .map(Self.storedDirectoryURL) ?? []
         navigate(to: currentURL, addingHistory: false)
+    }
+
+    static func storedDirectoryURL(_ path: String) -> URL {
+        // Supplying the directory hint prevents URL initialization from
+        // calling lstat. A stale network mount can otherwise block app launch
+        // before SwiftUI has created its first window.
+        URL(filePath: path, directoryHint: .isDirectory)
+    }
+
+    static func isRestorableSessionPath(_ path: String) -> Bool {
+        let standardized = NSString(string: path).standardizingPath
+        // Mounted volumes are transient. Keep their server addresses in the
+        // recent-server list, but begin a fresh local tab after a relaunch.
+        return standardized != "/Volumes" && !standardized.hasPrefix("/Volumes/")
     }
 
     var canGoBack: Bool { historyIndex > 0 }

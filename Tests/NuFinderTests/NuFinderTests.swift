@@ -10,6 +10,16 @@ private final class ByteCounter: @unchecked Sendable {
 }
 
 struct NuFinderTests {
+    @Test @MainActor func doesNotRestoreTransientMountedVolumeTabs() {
+        #expect(!BrowserModel.isRestorableSessionPath("/Volumes"))
+        #expect(!BrowserModel.isRestorableSessionPath("/Volumes/offline-share"))
+        #expect(BrowserModel.isRestorableSessionPath("/Users/example/Documents"))
+        #expect(
+            BrowserModel.storedDirectoryURL("/Volumes/offline-share").path
+                == "/Volumes/offline-share"
+        )
+    }
+
     @Test func recognizesFolderSymlinkAsNavigableDirectory() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let target = root.appendingPathComponent("target", isDirectory: true)
