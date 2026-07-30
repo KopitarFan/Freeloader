@@ -1,0 +1,22 @@
+{
+  "buildId": "3610dc71-33b1-454a-b12d-054fb0298684",
+  "trailingSlash": true,
+  "routes": [
+    {
+      "route": "/",
+      "status": "skipped",
+      "reason": "dynamic"
+    },
+    {
+      "route": "/releases",
+      "status": "skipped",
+      "reason": "dynamic"
+    },
+    {
+      "route": "/404",
+      "status": "rendered",
+      "revalidate": false,
+      "router": "app"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "virtual:cloudflare/worker-entry": {
+    "file": "index.js",
+    "name": "index",
+    "src": "virtual:cloudflare/worker-entry",
+    "isEntry": true,
+    "dynamicImports": [
+      "virtual:cloudflare/worker-entry"
+    ],
+    "css": [
+      "assets/index-DJ3d68lf.css"
+    ]
+  }
+}
