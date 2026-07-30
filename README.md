@@ -10,7 +10,7 @@ the file-management features that should not require a subscription—or a
 support group.
 
 [Website](https://kopitarfan.github.io/Freeloader/) ·
-[Download Freeloader 0.2.4](https://github.com/KopitarFan/Freeloader/releases/download/v0.2.4/Freeloader-0.2.4.dmg)
+[Download Freeloader 0.2.5](https://github.com/KopitarFan/Freeloader/releases/download/v0.2.5/Freeloader-0.2.5.dmg)
 
 Support: [miguel@miguelrodriguez.net](mailto:miguel@miguelrodriguez.net)
 
@@ -27,6 +27,7 @@ Support: [miguel@miguelrodriguez.net](mailto:miguel@miguelrodriguez.net)
 - Tabs with independent back and forward history
 - List, compact, and icon views
 - Spotlight-backed recursive search
+- SMB share mounting with recent servers and native macOS authentication
 - Quick Look, Get Info, permissions, extended attributes, and checksums
 - Undo for supported create, rename, copy, move, and Trash operations
 - Embedded Finder Sync extension
@@ -78,6 +79,7 @@ ruby Scripts/generate_xcode_project.rb
 - `⌘W`: close tab or window
 - `⌘N`: new window
 - `⌘⇧G`: focus Go to Folder
+- `⌘K`: connect to an SMB server
 - `⌘[` / `⌘]`: back / forward
 
 ## License

@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import NetFS
 import SwiftUI
 
 struct BrowserTab: Identifiable, Equatable {
@@ -35,6 +36,10 @@ final class BrowserModel: ObservableObject {
     @Published var showsTree = false
     @Published var showsNewFilePrompt = false
     @Published var showsNewFolderPrompt = false
+    @Published var showsConnectToServer = false
+    @Published var serverAddress = "smb://"
+    @Published private(set) var isConnectingToServer = false
+    @Published private(set) var recentServers: [String] = []
     @Published var showsHiddenFiles = false
     @Published var itemForInfo: FileItem?
     @Published var renameTarget: URL?
@@ -112,6 +117,7 @@ final class BrowserModel: ObservableObject {
             .map { URL(fileURLWithPath: $0) }
             .filter { FileManager.default.fileExists(atPath: $0.path) } ?? []
         savedSearches = UserDefaults.standard.stringArray(forKey: "savedSearches") ?? []
+        recentServers = UserDefaults.standard.stringArray(forKey: "recentSMBServers") ?? []
         customFavorites = UserDefaults.standard.stringArray(forKey: "customFavoritePaths")?
             .map { URL(fileURLWithPath: $0) }
             .filter { FileManager.default.fileExists(atPath: $0.path) } ?? []
@@ -152,6 +158,31 @@ final class BrowserModel: ObservableObject {
     func navigateFromAddress() {
         let expanded = NSString(string: addressText).expandingTildeInPath
         navigate(to: URL(fileURLWithPath: expanded))
+    }
+
+    func requestConnectToServer(_ address: String? = nil) {
+        serverAddress = address ?? (recentServers.first ?? "smb://")
+        showsConnectToServer = true
+    }
+
+    func connectToServer() async {
+        guard !isConnectingToServer else { return }
+        do {
+            let serverURL = try NetworkShareService.smbURL(from: serverAddress)
+            isConnectingToServer = true
+            defer { isConnectingToServer = false }
+            let mountPoints = try await NetworkShareService.mount(serverURL)
+            guard let destination = mountPoints.first else {
+                throw NetworkShareService.MountError.noMountPoint
+            }
+            recordRecentServer(serverURL)
+            showsConnectToServer = false
+            navigate(to: destination)
+        } catch is CancellationError {
+            // Closing the native authentication or share picker is not an error.
+        } catch {
+            errorMessage = "Couldn’t connect to the server: \(error.localizedDescription)"
+        }
     }
 
     func handleDeepLink(_ url: URL) {
@@ -1077,5 +1108,90 @@ final class BrowserModel: ObservableObject {
     func removeFavorite(_ url: URL) {
         customFavorites.removeAll { $0.standardizedFileURL == url.standardizedFileURL }
         UserDefaults.standard.set(customFavorites.map(\.path), forKey: "customFavoritePaths")
+    }
+
+    private func recordRecentServer(_ url: URL) {
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return
+        }
+        // Authentication belongs to macOS and Keychain, never UserDefaults.
+        components.user = nil
+        components.password = nil
+        guard let sanitized = components.url?.absoluteString else { return }
+        recentServers.removeAll { $0.caseInsensitiveCompare(sanitized) == .orderedSame }
+        recentServers.insert(sanitized, at: 0)
+        if recentServers.count > 10 {
+            recentServers.removeLast(recentServers.count - 10)
+        }
+        UserDefaults.standard.set(recentServers, forKey: "recentSMBServers")
+    }
+}
+
+private enum NetworkShareService {
+    enum MountError: LocalizedError {
+        case invalidAddress
+        case passwordInAddress
+        case failed(Int32)
+        case noMountPoint
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidAddress:
+                return "Enter an SMB address such as smb://server/share."
+            case .passwordInAddress:
+                return "Leave the password out of the address. macOS will ask for it securely."
+            case .failed(let status):
+                if status > 0 {
+                    return String(cString: strerror(status))
+                }
+                return (SecCopyErrorMessageString(OSStatus(status), nil) as String?)
+                    ?? "The server returned error \(status)."
+            case .noMountPoint:
+                return "macOS connected but did not return a mounted share."
+            }
+        }
+    }
+
+    static func smbURL(from input: String) throws -> URL {
+        var value = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { throw MountError.invalidAddress }
+        if !value.contains("://") {
+            value = "smb://" + value
+        }
+        guard let components = URLComponents(string: value),
+              components.scheme?.lowercased() == "smb",
+              components.host?.isEmpty == false,
+              let url = components.url else {
+            throw MountError.invalidAddress
+        }
+        guard components.password == nil else { throw MountError.passwordInAddress }
+        return url
+    }
+
+    static func mount(_ url: URL) async throws -> [URL] {
+        try await Task.detached(priority: .userInitiated) {
+            var returnedMountPoints: Unmanaged<CFArray>?
+            let openOptions = NSMutableDictionary(
+                object: "AllowUI",
+                forKey: "UIOption" as NSString
+            )
+            let status = NetFSMountURLSync(
+                url as CFURL,
+                nil,
+                nil,
+                nil,
+                openOptions,
+                nil,
+                &returnedMountPoints
+            )
+            if status == userCanceledErr {
+                throw CancellationError()
+            }
+            guard status == 0 else { throw MountError.failed(status) }
+            guard let values = returnedMountPoints?.takeRetainedValue() as? [String] else {
+                return []
+            }
+            return values.map { URL(fileURLWithPath: $0, isDirectory: true) }
+        }.value
     }
 }

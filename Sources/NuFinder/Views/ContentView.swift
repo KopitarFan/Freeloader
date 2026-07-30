@@ -65,6 +65,10 @@ struct ContentView: View {
             BatchRenameView()
                 .environmentObject(browser)
         }
+        .sheet(isPresented: $browser.showsConnectToServer) {
+            ConnectToServerView()
+                .environmentObject(browser)
+        }
         .sheet(isPresented: $browser.showsCommandPalette) {
             CommandPaletteView()
                 .environmentObject(browser)
@@ -259,6 +263,75 @@ struct ContentView: View {
         case .compact: "rectangle.grid.1x2"
         case .icons: "square.grid.2x2"
         }
+    }
+}
+
+private struct ConnectToServerView: View {
+    @EnvironmentObject private var browser: BrowserModel
+    @FocusState private var addressFocused: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 12) {
+                Image(systemName: "network")
+                    .font(.system(size: 30))
+                    .foregroundStyle(.tint)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Connect to Server")
+                        .font(.title2.bold())
+                    Text("Mount an SMB share using macOS authentication.")
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            TextField("smb://server/share", text: $browser.serverAddress)
+                .textFieldStyle(.roundedBorder)
+                .focused($addressFocused)
+                .onSubmit { connect() }
+
+            if !browser.recentServers.isEmpty {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text("Recent Servers")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    ForEach(browser.recentServers, id: \.self) { address in
+                        Button {
+                            browser.serverAddress = address
+                        } label: {
+                            Label(address, systemImage: "clock")
+                                .lineLimit(1)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            HStack {
+                if browser.isConnectingToServer {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("Connecting…")
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("Cancel", role: .cancel) {
+                    browser.showsConnectToServer = false
+                }
+                .disabled(browser.isConnectingToServer)
+                Button("Connect") { connect() }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(browser.isConnectingToServer)
+            }
+        }
+        .padding(22)
+        .frame(width: 480)
+        .onAppear { addressFocused = true }
+        .interactiveDismissDisabled(browser.isConnectingToServer)
+    }
+
+    private func connect() {
+        Task { await browser.connectToServer() }
     }
 }
 
