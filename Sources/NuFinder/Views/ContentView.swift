@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var browser: BrowserModel
     @EnvironmentObject private var operations: FileOperationManager
+    @EnvironmentObject private var paneFocus: PaneFocusCoordinator
     @StateObject private var secondaryBrowser = BrowserModel(
         initialURL: FileManager.default.homeDirectoryForCurrentUser,
         restoresSession: false
@@ -32,15 +33,13 @@ struct ContentView: View {
             .animation(.easeInOut(duration: 0.18), value: showsSplitPane)
         }
         .toolbar { toolbar }
-        .onAppear { NSApp.keyWindow?.representedURL = browser.currentURL }
+        .onAppear {
+            paneFocus.activate(browser)
+            NSApp.keyWindow?.representedURL = browser.currentURL
+        }
         .onChange(of: browser.currentURL) { _, url in
             NSApp.keyWindow?.representedURL = url
         }
-        .onChange(of: browser.viewMode) { _, _ in browser.saveViewPreferences() }
-        .onChange(of: browser.showsKindColumn) { _, _ in browser.saveViewPreferences() }
-        .onChange(of: browser.showsSizeColumn) { _, _ in browser.saveViewPreferences() }
-        .onChange(of: browser.showsModifiedColumn) { _, _ in browser.saveViewPreferences() }
-        .onChange(of: browser.sortCriteria) { _, _ in browser.saveViewPreferences() }
         .alert("New File", isPresented: $browser.showsNewFilePrompt) {
             TextField("File name", text: $newFileName)
             Button("Cancel", role: .cancel) {}
@@ -126,7 +125,7 @@ struct ContentView: View {
         VStack(spacing: 0) {
             TabBarView()
             Divider()
-            AddressBarRow(showsPaneNavigation: showsSplitPane)
+            AddressBarRow()
             Divider()
             SearchBarView()
             Divider()
@@ -140,8 +139,19 @@ struct ContentView: View {
             }
             .animation(.easeInOut(duration: 0.16), value: previewItem(in: model)?.url)
         }
+        .simultaneousGesture(
+            TapGesture().onEnded {
+                paneFocus.activate(model)
+                NSApp.keyWindow?.representedURL = model.currentURL
+            }
+        )
         .environmentObject(model)
         .environmentObject(operations)
+        .onChange(of: model.viewMode) { _, _ in model.saveViewPreferences() }
+        .onChange(of: model.showsKindColumn) { _, _ in model.saveViewPreferences() }
+        .onChange(of: model.showsSizeColumn) { _, _ in model.saveViewPreferences() }
+        .onChange(of: model.showsModifiedColumn) { _, _ in model.saveViewPreferences() }
+        .onChange(of: model.sortCriteria) { _, _ in model.saveViewPreferences() }
         .task(id: model.currentURL) {
             if gitStatusEnabled {
                 GitStatusService.shared.refresh(for: model.currentURL)
@@ -164,62 +174,7 @@ struct ContentView: View {
 
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
-        ToolbarItemGroup(placement: .navigation) {
-            if !showsSplitPane {
-                Menu {
-                    ForEach(browser.backHistory.reversed(), id: \.self) { url in
-                        Button(url.path) { browser.navigateToHistory(url) }
-                    }
-                } label: {
-                    FreeloaderToolbarIcon(systemName: "chevron.left")
-                } primaryAction: {
-                    browser.goBack()
-                }
-                .disabled(!browser.canGoBack)
-                .help("Back; open the menu for history")
-
-                Menu {
-                    ForEach(browser.forwardHistory.reversed(), id: \.self) { url in
-                        Button(url.path) { browser.navigateToHistory(url) }
-                    }
-                } label: {
-                    FreeloaderToolbarIcon(systemName: "chevron.right")
-                } primaryAction: {
-                    browser.goForward()
-                }
-                .disabled(!browser.canGoForward)
-                .help("Forward; open the menu for history")
-
-                Button(action: browser.goUp) {
-                    FreeloaderToolbarIcon(systemName: "arrow.up")
-                }
-                .buttonStyle(.plain)
-                .help("Parent Folder")
-            }
-        }
         ToolbarItemGroup {
-            Menu {
-                ForEach(FileViewMode.allCases) { mode in
-                    Button {
-                        browser.viewMode = mode
-                    } label: {
-                        Label(
-                            mode.rawValue,
-                            systemImage: browser.viewMode == mode
-                                ? "checkmark"
-                                : viewModeIcon(mode)
-                        )
-                    }
-                }
-            } label: {
-                FreeloaderToolbarIcon(
-                    systemName: viewModeIcon(browser.viewMode),
-                    isActive: browser.viewMode != .list
-                )
-            }
-            .help("View Mode: \(browser.viewMode.rawValue)")
-
-            SortMenu()
             if toolbarShowsSplit {
                 Button {
                     showsSplitPane.toggle()
@@ -265,13 +220,6 @@ struct ContentView: View {
         )
     }
 
-    private func viewModeIcon(_ mode: FileViewMode) -> String {
-        switch mode {
-        case .list: "list.bullet"
-        case .compact: "rectangle.grid.1x2"
-        case .icons: "square.grid.2x2"
-        }
-    }
 }
 
 private struct ConnectToServerView: View {

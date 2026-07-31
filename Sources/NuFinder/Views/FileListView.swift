@@ -48,6 +48,9 @@ struct FileListView: View {
             }
             return .handled
         }
+        .onChange(of: browser.selection) { _, _ in
+            browser.requestAddressBlur()
+        }
     }
 
     private var listView: some View {
@@ -76,14 +79,14 @@ struct FileListView: View {
                 .scaleEffect(activatingURL == item.url ? 0.985 : 1)
                 .animation(.easeOut(duration: 0.1), value: activatingURL)
                 .contentShape(Rectangle())
-                .draggable(item.url) {
+                .draggable(dragPayload(for: item.url)) {
                     Label(item.name, systemImage: item.isDirectory ? "folder" : "doc")
                         .padding(8)
                         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
                 }
-                .dropDestination(for: URL.self) { urls, _ in
+                .dropDestination(for: FileDragPayload.self) { payloads, _ in
                     guard item.isDirectory else { return false }
-                    moveDroppedItems(urls, to: item.url)
+                    moveDroppedItems(payloads.flatMap(\.urls), to: item.url)
                     return true
                 } isTargeted: { targeted in
                     if targeted && item.isDirectory {
@@ -216,8 +219,8 @@ struct FileListView: View {
             }
             Button("Reload") { browser.reload() }
         }
-        .dropDestination(for: URL.self) { urls, _ in
-            moveDroppedItems(urls, to: browser.currentURL)
+        .dropDestination(for: FileDragPayload.self) { payloads, _ in
+            moveDroppedItems(payloads.flatMap(\.urls), to: browser.currentURL)
             return true
         }
         .overlay {
@@ -267,8 +270,8 @@ struct FileListView: View {
                     .allowsHitTesting(false)
             }
         }
-        .dropDestination(for: URL.self) { urls, _ in
-            moveDroppedItems(urls, to: browser.currentURL)
+        .dropDestination(for: FileDragPayload.self) { payloads, _ in
+            moveDroppedItems(payloads.flatMap(\.urls), to: browser.currentURL)
             return true
         }
         .contextMenu {
@@ -342,10 +345,10 @@ struct FileListView: View {
             .accessibilityAddTraits(browser.selection.contains(item.url) ? .isSelected : [])
             .onTapGesture { select(item.url) }
             .simultaneousGesture(TapGesture(count: 2).onEnded { activate(item) })
-            .draggable(item.url)
-            .dropDestination(for: URL.self) { urls, _ in
+            .draggable(dragPayload(for: item.url))
+            .dropDestination(for: FileDragPayload.self) { payloads, _ in
                 guard item.isDirectory else { return false }
-                moveDroppedItems(urls, to: item.url)
+                moveDroppedItems(payloads.flatMap(\.urls), to: item.url)
                 return true
             } isTargeted: { targeted in
                 scheduleSpringOpen(item, targeted: targeted)
@@ -401,6 +404,7 @@ struct FileListView: View {
     }
 
     private func select(_ url: URL) {
+        browser.requestAddressBlur()
         let modifiers = NSApp.currentEvent?.modifierFlags ?? []
         browser.select(
             url,
@@ -421,6 +425,7 @@ struct FileListView: View {
                         return
                     }
                     isMarqueeSelecting = true
+                    browser.requestAddressBlur()
                     browser.beginMarqueeSelection()
                     marqueeBaseSelection = browser.selection
                     marqueeAddsToSelection =
@@ -460,6 +465,7 @@ struct FileListView: View {
                     return
                 }
                 browser.clearSelection()
+                browser.requestAddressBlur()
             }
     }
 
@@ -499,6 +505,13 @@ struct FileListView: View {
                 operations: operationManager
             )
         }
+    }
+
+    private func dragPayload(for url: URL) -> FileDragPayload {
+        let urls = browser.selection.contains(url) && browser.selection.count > 1
+            ? browser.displayedItems.map(\.url).filter(browser.selection.contains)
+            : [url]
+        return FileDragPayload(urls: urls)
     }
 
     private func moveKeyboardSelection(_ direction: MoveCommandDirection) {

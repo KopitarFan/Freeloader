@@ -50,6 +50,8 @@ final class BrowserModel: ObservableObject {
     @Published var activeTabID: UUID
     @Published private(set) var recentLocations: [URL] = []
     @Published var addressFocusToken = UUID()
+    @Published var addressBlurToken = UUID()
+    @Published private(set) var isEditingAddress = false
     @Published private(set) var isLoading = false
     @Published var searchText = ""
     @Published var searchSubfolders = false
@@ -209,7 +211,12 @@ final class BrowserModel: ObservableObject {
 
     func beginEditingAddress() {
         // Keep the canonical path visible and editable whenever the field gains focus.
+        isEditingAddress = true
         addressText = currentURL.path
+    }
+
+    func endEditingAddress() {
+        isEditingAddress = false
     }
 
     func goBack() {
@@ -242,6 +249,11 @@ final class BrowserModel: ObservableObject {
 
     func requestAddressFocus() {
         addressFocusToken = UUID()
+    }
+
+    func requestAddressBlur() {
+        isEditingAddress = false
+        addressBlurToken = UUID()
     }
 
     func newTab(at url: URL? = nil) {
