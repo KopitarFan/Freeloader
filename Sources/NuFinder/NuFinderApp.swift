@@ -51,6 +51,7 @@ struct FreeloaderApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var browser = BrowserModel()
     @StateObject private var operations = FileOperationManager()
+    @StateObject private var paneFocus = PaneFocusCoordinator()
     @AppStorage("shortcut.commandPalette") private var commandPaletteKey = "p"
     @AppStorage("shortcut.terminal") private var terminalKey = "t"
 
@@ -59,6 +60,7 @@ struct FreeloaderApp: App {
             ContentView()
                 .environmentObject(browser)
                 .environmentObject(operations)
+                .environmentObject(paneFocus)
                 .frame(minWidth: 820, minHeight: 480)
                 .onOpenURL { browser.handleDeepLink($0) }
         }
@@ -89,9 +91,12 @@ struct FreeloaderApp: App {
                 .keyboardShortcut("v")
                 Divider()
                 Button("Select All") {
-                    if !sendTextCommand(#selector(NSText.selectAll(_:))) {
-                        browser.selectAll()
+                    if activeBrowser.isEditingAddress || activeBrowser.renameTarget != nil {
+                        if sendTextCommand(#selector(NSText.selectAll(_:))) {
+                            return
+                        }
                     }
+                    activeBrowser.selectAll()
                 }
                     .keyboardShortcut("a")
                 Button("Invert Selection") { browser.invertSelection() }
@@ -196,9 +201,17 @@ struct FreeloaderApp: App {
         KeyEquivalent(value.first ?? fallback)
     }
 
+    private var activeBrowser: BrowserModel {
+        paneFocus.activeBrowser ?? browser
+    }
+
     @MainActor
     private func sendTextCommand(_ selector: Selector) -> Bool {
-        guard NSApp.keyWindow?.firstResponder is NSTextView else { return false }
+        guard let editor = NSApp.keyWindow?.firstResponder as? NSTextView,
+              editor.isFieldEditor,
+              editor.delegate is NSTextField else {
+            return false
+        }
         return NSApp.sendAction(selector, to: nil, from: nil)
     }
 }

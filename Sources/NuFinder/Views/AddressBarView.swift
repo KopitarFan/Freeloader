@@ -33,13 +33,19 @@ struct AddressBarView: View {
                 allowsSuggestions = true
                 isFocused = true
             }
+            .onChange(of: browser.addressBlurToken) { _, _ in
+                isFocused = false
+            }
             .onChange(of: isFocused) { _, focused in
                 if focused && allowsSuggestions {
                     browser.beginEditingAddress()
                     updateSuggestions()
                 } else {
                     suggestions = []
-                    if !focused { allowsSuggestions = false }
+                    if !focused {
+                        allowsSuggestions = false
+                        browser.endEditingAddress()
+                    }
                 }
             }
             .popover(isPresented: Binding(
