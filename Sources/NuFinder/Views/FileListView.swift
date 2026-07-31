@@ -313,10 +313,10 @@ struct FileListView: View {
         }
         .onKeyPress(.return) {
             guard let url = browser.selection.first,
-                  let item = browser.displayedItems.first(where: { $0.url == url }) else {
+                  browser.displayedItems.contains(where: { $0.url == url }) else {
                 return .ignored
             }
-            activate(item)
+            browser.renameTarget = url
             return .handled
         }
         .overlay {
@@ -358,16 +358,25 @@ struct FileListView: View {
         if browser.viewMode == .icons {
             VStack(spacing: 7) {
                 FileThumbnailView(item: item, size: 56)
-                Text(item.name)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
+                if browser.renameTarget == item.url {
+                    RenameField(item: item)
+                        .multilineTextAlignment(.center)
+                } else {
+                    Text(item.name)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                }
                 GitStatusBadge(url: item.url)
             }
             .frame(maxWidth: .infinity, minHeight: 82)
         } else {
             HStack(spacing: 8) {
                 FileThumbnailView(item: item, size: 24)
-                Text(item.name).lineLimit(1)
+                if browser.renameTarget == item.url {
+                    RenameField(item: item)
+                } else {
+                    Text(item.name).lineLimit(1)
+                }
                 GitStatusBadge(url: item.url)
                 Spacer()
             }
