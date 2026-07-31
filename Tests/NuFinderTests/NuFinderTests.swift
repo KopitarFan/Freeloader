@@ -47,6 +47,25 @@ struct NuFinderTests {
         #expect(browser.addressText == target.path)
     }
 
+    @Test @MainActor func renamesFoldersAndKeepsThemSelected() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let original = root.appendingPathComponent("Old Folder", isDirectory: true)
+        let renamed = root.appendingPathComponent("New Folder", isDirectory: true)
+        try FileManager.default.createDirectory(at: original, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let browser = BrowserModel(initialURL: root, restoresSession: false)
+        browser.renameTarget = original
+        browser.rename(original, to: "New Folder")
+
+        var isDirectory: ObjCBool = false
+        #expect(FileManager.default.fileExists(atPath: renamed.path, isDirectory: &isDirectory))
+        #expect(isDirectory.boolValue)
+        #expect(!FileManager.default.fileExists(atPath: original.path))
+        #expect(browser.renameTarget == nil)
+        #expect(browser.selection.map(\.path) == [renamed.path])
+    }
+
     @Test func countsNestedFileBytes() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
