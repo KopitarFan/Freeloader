@@ -24,6 +24,9 @@
 		567B31B3339A597400EBBC6A /* CommandPaletteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 126E40C898E906A5779BC46F /* CommandPaletteView.swift */; };
 		5CC6B148FDE2D6145A35DA1C /* OperationJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82F0E9359B719A2B4DD6C4E1 /* OperationJournal.swift */; };
 		60D1C4BFAD993FD38B39CD3D /* BrowserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10EC7368D6D0D9E733726463 /* BrowserModel.swift */; };
+		61B000000000000000000001 /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B000000000000000000002 /* GalleryView.swift */; };
+		61C000000000000000000001 /* ContactSheetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C000000000000000000002 /* ContactSheetService.swift */; };
+		61D000000000000000000001 /* PaneInteractionMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D000000000000000000002 /* PaneInteractionMonitor.swift */; };
 		61A000000000000000000001 /* FileDragPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A000000000000000000003 /* FileDragPayload.swift */; };
 		61A000000000000000000002 /* PaneFocusCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A000000000000000000004 /* PaneFocusCoordinator.swift */; };
 		6241DA3B04A2341054DD6145 /* BatchRenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3117D75F7396BB34460B1193 /* BatchRenameView.swift */; };
@@ -101,6 +104,9 @@
 		53C24E13314F7566D8235742 /* TransferDetailsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TransferDetailsView.swift; path = Views/TransferDetailsView.swift; sourceTree = "<group>"; };
 		5456484DA0DFD9625A9841CA /* FolderSizeText.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FolderSizeText.swift; path = Views/FolderSizeText.swift; sourceTree = "<group>"; };
 		61F8CC24CCE7C40D2DE95E02 /* FileListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileListView.swift; path = Views/FileListView.swift; sourceTree = "<group>"; };
+		61B000000000000000000002 /* GalleryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GalleryView.swift; path = Views/GalleryView.swift; sourceTree = "<group>"; };
+		61C000000000000000000002 /* ContactSheetService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContactSheetService.swift; path = Services/ContactSheetService.swift; sourceTree = "<group>"; };
+		61D000000000000000000002 /* PaneInteractionMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PaneInteractionMonitor.swift; path = Views/PaneInteractionMonitor.swift; sourceTree = "<group>"; };
 		823A824CC9271C6B519F6476 /* ThumbnailService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ThumbnailService.swift; path = Services/ThumbnailService.swift; sourceTree = "<group>"; };
 		82F0E9359B719A2B4DD6C4E1 /* OperationJournal.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OperationJournal.swift; path = Services/OperationJournal.swift; sourceTree = "<group>"; };
 		84DDD263E0D2545937A3D14C /* DirectoryWatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DirectoryWatcher.swift; path = Services/DirectoryWatcher.swift; sourceTree = "<group>"; };
@@ -158,6 +164,7 @@
 				05AF2BFD43AA7189F118459C /* NuFinderApp.swift */,
 				F456231B70A6125B1698233B /* ArchiveService.swift */,
 				F96728C61009AAABBDA015DB /* ChunkedFileCopier.swift */,
+				61C000000000000000000002 /* ContactSheetService.swift */,
 				84DDD263E0D2545937A3D14C /* DirectoryWatcher.swift */,
 				3995CA39D376EE4FBD373BC4 /* FileActionService.swift */,
 				DEDC617E0661268C50FB0A62 /* FileMetadataService.swift */,
@@ -179,11 +186,13 @@
 				2E40967A17108FA20BE8C28E /* ContentView.swift */,
 				CEB71C04828B0612C9339F6E /* FileInfoView.swift */,
 				61F8CC24CCE7C40D2DE95E02 /* FileListView.swift */,
+				61B000000000000000000002 /* GalleryView.swift */,
 				FE523630CF86422344827554 /* FileThumbnailView.swift */,
 				5456484DA0DFD9625A9841CA /* FolderSizeText.swift */,
 				DE06B117679F5674C4B52610 /* GitStatusBadge.swift */,
 				C73AC840819CA65FE7FCF148 /* ImagePreviewPane.swift */,
 				519D592B4A8B06D67A4254D9 /* MetadataEditorView.swift */,
+				61D000000000000000000002 /* PaneInteractionMonitor.swift */,
 				FAB3FA2B5C5E49022033C3A8 /* SearchBarView.swift */,
 				E963C14BBB824FDBE471FF29 /* SettingsView.swift */,
 				4219BE6DCF92BA0E6CEDECFE /* SidebarView.swift */,
@@ -355,12 +364,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				60D1C4BFAD993FD38B39CD3D /* BrowserModel.swift in Sources */,
+				61B000000000000000000001 /* GalleryView.swift in Sources */,
 				61A000000000000000000001 /* FileDragPayload.swift in Sources */,
 				6ACD9251A79E4F3A949F65AA /* FileItem.swift in Sources */,
 				61A000000000000000000002 /* PaneFocusCoordinator.swift in Sources */,
 				B70C4A19998E78741613666C /* NuFinderApp.swift in Sources */,
 				C87085DE34BC6CF4BB9FCD9C /* ArchiveService.swift in Sources */,
 				5471B139D90D8E5690AC500A /* ChunkedFileCopier.swift in Sources */,
+				61C000000000000000000001 /* ContactSheetService.swift in Sources */,
 				37523EE6F2630A211793A2E5 /* DirectoryWatcher.swift in Sources */,
 				674D4DFB56C300B036F3BFD3 /* FileActionService.swift in Sources */,
 				545F2C8CD15714A841D1F9FB /* FileMetadataService.swift in Sources */,
@@ -385,6 +396,7 @@
 				9E31DF58AD0B0112ABDE177E /* FileThumbnailView.swift in Sources */,
 				C80A43899928565E18BC797A /* FolderSizeText.swift in Sources */,
 				D5778F29D13CFDDFFA73F706 /* GitStatusBadge.swift in Sources */,
+				61D000000000000000000001 /* PaneInteractionMonitor.swift in Sources */,
 				7004476FA59E222DD709E6A6 /* ImagePreviewPane.swift in Sources */,
 				4521E517C92ED5989275E1D9 /* MetadataEditorView.swift in Sources */,
 				49DC8177CCF479116EF30B96 /* SearchBarView.swift in Sources */,

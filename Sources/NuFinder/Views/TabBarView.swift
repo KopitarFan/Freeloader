@@ -56,5 +56,8 @@ struct TabBarView: View {
             .padding(.vertical, 5)
         }
         .background(.bar)
+        .simultaneousGesture(
+            TapGesture().onEnded { browser.clearSelection() }
+        )
     }
 }

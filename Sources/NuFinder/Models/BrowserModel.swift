@@ -70,6 +70,7 @@ final class BrowserModel: ObservableObject {
     @Published var showsBatchRenamePrompt = false
     @Published var showsTagPrompt = false
     @Published var showsCommandPalette = false
+    @Published var showsGallery = false
     @Published var tagText = ""
     @Published var detailTitle: String?
     @Published var detailText = ""

@@ -87,5 +87,8 @@ struct SearchBarView: View {
         .padding(.vertical, 7)
         .background(.bar)
         .accessibilityLabel("File search")
+        .simultaneousGesture(
+            TapGesture().onEnded { browser.clearSelection() }
+        )
     }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import PDFKit
 import Testing
 @testable import NuFinder
 
@@ -227,5 +228,27 @@ struct NuFinderTests {
         #expect(attribute.displayValue == "hello")
         try FileMetadataService.removeAttribute(name, at: file)
         #expect(try FileMetadataService.extendedAttributes(at: file).contains { $0.name == name } == false)
+    }
+
+    @Test func exportsContactSheetAsPNGAndPDF() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let imageURL = root.appendingPathComponent("sample.png")
+        let pngFixture = try #require(Data(base64Encoded:
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        ))
+        try pngFixture.write(to: imageURL)
+        let item = try #require(FileItem.load(imageURL))
+        let pngURL = root.appendingPathComponent("sheet.png")
+        let pdfURL = root.appendingPathComponent("sheet.pdf")
+
+        try ContactSheetService.writePNG(images: [item], title: "Pictures", to: pngURL)
+        try ContactSheetService.writePDF(images: [item], title: "Pictures", to: pdfURL)
+
+        let pngData = try Data(contentsOf: pngURL)
+        #expect(Array(pngData.prefix(8)) == [137, 80, 78, 71, 13, 10, 26, 10])
+        let pdf = try #require(PDFDocument(url: pdfURL))
+        #expect(pdf.pageCount == 1)
     }
 }
