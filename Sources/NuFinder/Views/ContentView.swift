@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject private var browser: BrowserModel
@@ -134,17 +135,29 @@ struct ContentView: View {
                 if let previewItem = previewItem(in: model) {
                     Divider()
                     ImagePreviewPane(item: previewItem)
+                        .simultaneousGesture(
+                            TapGesture().onEnded { model.clearSelection() }
+                        )
                         .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
             }
             .animation(.easeInOut(duration: 0.16), value: previewItem(in: model)?.url)
         }
-        .simultaneousGesture(
-            TapGesture().onEnded {
+        .background {
+            PaneInteractionMonitor {
                 paneFocus.activate(model)
                 NSApp.keyWindow?.representedURL = model.currentURL
             }
-        )
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .stroke(
+                    Color.accentColor.opacity(paneFocus.isActive(model) ? 0.85 : 0),
+                    lineWidth: 2
+                )
+                .padding(1)
+                .allowsHitTesting(false)
+        }
         .environmentObject(model)
         .environmentObject(operations)
         .onChange(of: model.viewMode) { _, _ in model.saveViewPreferences() }
@@ -152,6 +165,13 @@ struct ContentView: View {
         .onChange(of: model.showsSizeColumn) { _, _ in model.saveViewPreferences() }
         .onChange(of: model.showsModifiedColumn) { _, _ in model.saveViewPreferences() }
         .onChange(of: model.sortCriteria) { _, _ in model.saveViewPreferences() }
+        .sheet(isPresented: Binding(
+            get: { model.showsGallery },
+            set: { model.showsGallery = $0 }
+        )) {
+            GalleryView()
+                .environmentObject(model)
+        }
         .task(id: model.currentURL) {
             if gitStatusEnabled {
                 GitStatusService.shared.refresh(for: model.currentURL)
@@ -166,10 +186,17 @@ struct ContentView: View {
             : selectedURL
         guard let url = previewURL,
               let item = model.displayedItems.first(where: { $0.url == url }),
-              !item.isDirectory else {
+              !item.isDirectory,
+              !isArchive(item.url) else {
             return nil
         }
         return item
+    }
+
+    private func isArchive(_ url: URL) -> Bool {
+        if ArchiveService.isArchive(url) { return true }
+        guard let type = UTType(filenameExtension: url.pathExtension) else { return false }
+        return type.conforms(to: .archive)
     }
 
     @ToolbarContentBuilder
@@ -189,7 +216,7 @@ struct ContentView: View {
             }
             if toolbarShowsTerminal {
                 Button {
-                    TerminalService.open(at: browser.currentURL)
+                    TerminalService.open(at: activeBrowser.currentURL)
                 } label: {
                     FreeloaderToolbarIcon(systemName: "terminal")
                 }
@@ -218,6 +245,10 @@ struct ContentView: View {
                 if !isPresented { browser.detailTitle = nil }
             }
         )
+    }
+
+    private var activeBrowser: BrowserModel {
+        paneFocus.activeBrowser ?? browser
     }
 
 }

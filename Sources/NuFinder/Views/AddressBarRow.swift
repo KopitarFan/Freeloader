@@ -59,12 +59,22 @@ struct AddressBarRow: View {
                 .help("Go to Path")
                 viewModeMenu
                 SortMenu()
+                Button {
+                    browser.showsGallery = true
+                } label: {
+                    FreeloaderToolbarIcon(systemName: "photo.on.rectangle.angled")
+                }
+                .buttonStyle(.plain)
+                .help("Open Image Gallery")
             }
             BreadcrumbView()
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(.bar)
+        .simultaneousGesture(
+            TapGesture().onEnded { browser.clearSelection() }
+        )
     }
 
     private func paneNavigationIcon(_ systemName: String) -> some View {
