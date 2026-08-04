@@ -15,7 +15,7 @@ struct BrowserTab: Identifiable, Equatable {
     }
 }
 
-private struct FolderViewPreference: Codable {
+struct FolderViewPreference: Codable {
     var viewMode: String
     var showsKind: Bool
     var showsSize: Bool
@@ -87,6 +87,7 @@ final class BrowserModel: ObservableObject {
     private var searchTask: Task<Void, Never>?
     private var selectionAnchor: URL?
     private let spotlight = SpotlightSearchService()
+    private var favoriteViewPreferences: [String: FolderViewPreference] = [:]
 
     var canUndo: Bool { !undoActions.isEmpty }
     var canReopenClosedTab: Bool { !closedTabs.isEmpty }
@@ -122,6 +123,10 @@ final class BrowserModel: ObservableObject {
         recentServers = UserDefaults.standard.stringArray(forKey: "recentSMBServers") ?? []
         customFavorites = UserDefaults.standard.stringArray(forKey: "customFavoritePaths")?
             .map(Self.storedDirectoryURL) ?? []
+        if let data = UserDefaults.standard.data(forKey: "favoriteViewPreferences"),
+           let decoded = try? JSONDecoder().decode([String: FolderViewPreference].self, from: data) {
+            favoriteViewPreferences = decoded
+        }
         navigate(to: currentURL, addingHistory: false)
     }
 
@@ -1024,7 +1029,13 @@ final class BrowserModel: ObservableObject {
     }
 
     func saveViewPreferences() {
-        let preference = FolderViewPreference(
+        let preference = currentViewPreference()
+        guard let data = try? JSONEncoder().encode(preference) else { return }
+        UserDefaults.standard.set(data, forKey: viewPreferenceKey(for: currentURL))
+    }
+
+    private func currentViewPreference() -> FolderViewPreference {
+        FolderViewPreference(
             viewMode: viewMode.rawValue,
             showsKind: showsKindColumn,
             showsSize: showsSizeColumn,
@@ -1032,8 +1043,6 @@ final class BrowserModel: ObservableObject {
             sortFields: sortCriteria.map { $0.field.rawValue },
             sortAscending: sortCriteria.map(\.ascending)
         )
-        guard let data = try? JSONEncoder().encode(preference) else { return }
-        UserDefaults.standard.set(data, forKey: viewPreferenceKey(for: currentURL))
     }
 
     private func restoreViewPreferences(for url: URL) {
@@ -1054,6 +1063,55 @@ final class BrowserModel: ObservableObject {
 
     private func viewPreferenceKey(for url: URL) -> String {
         "folderViewPreference.\(url.standardizedFileURL.path)"
+    }
+
+    func workspaceSnapshot() -> BrowserPaneSnapshot {
+        syncActiveTab()
+        return BrowserPaneSnapshot(
+            tabPaths: tabs.map { $0.url.path },
+            pinnedTabPaths: tabs.filter(\.isPinned).map { $0.url.path },
+            activeTabIndex: tabs.firstIndex(where: { $0.id == activeTabID }) ?? 0,
+            viewMode: viewMode.rawValue,
+            showsKind: showsKindColumn,
+            showsSize: showsSizeColumn,
+            showsModified: showsModifiedColumn,
+            sortFields: sortCriteria.map { $0.field.rawValue },
+            sortAscending: sortCriteria.map(\.ascending)
+        )
+    }
+
+    func restoreWorkspace(_ snapshot: BrowserPaneSnapshot) {
+        let validURLs = snapshot.tabPaths
+            .filter(Self.isRestorableSessionPath)
+            .map(Self.storedDirectoryURL)
+            .filter { FileManager.default.fileExists(atPath: $0.path) }
+        let urls = validURLs.isEmpty ? [FileManager.default.homeDirectoryForCurrentUser] : validURLs
+        let pinned = Set(snapshot.pinnedTabPaths)
+        tabs = urls.map {
+            BrowserTab(
+                id: UUID(),
+                url: $0,
+                history: [$0],
+                historyIndex: 0,
+                isPinned: pinned.contains($0.path)
+            )
+        }
+        let activeIndex = min(max(0, snapshot.activeTabIndex), tabs.count - 1)
+        activeTabID = tabs[activeIndex].id
+        currentURL = tabs[activeIndex].url
+        history = [currentURL]
+        historyIndex = 0
+        navigate(to: currentURL, addingHistory: false)
+        viewMode = FileViewMode(rawValue: snapshot.viewMode) ?? .list
+        showsKindColumn = snapshot.showsKind
+        showsSizeColumn = snapshot.showsSize
+        showsModifiedColumn = snapshot.showsModified
+        let criteria = zip(snapshot.sortFields, snapshot.sortAscending).compactMap { field, ascending in
+            SortField.allCases.first { $0.rawValue == field }.map {
+                SortCriterion(field: $0, ascending: ascending)
+            }
+        }
+        sortCriteria = criteria.isEmpty ? [SortCriterion(field: .name, ascending: true)] : criteria
     }
 
     func moveSelectionToTrash() {
@@ -1127,12 +1185,52 @@ final class BrowserModel: ObservableObject {
 
         customFavorites.append(candidate)
         UserDefaults.standard.set(customFavorites.map(\.path), forKey: "customFavoritePaths")
+        favoriteViewPreferences[candidate.path] = currentViewPreference()
+        persistFavoriteViewPreferences()
         return true
     }
 
     func removeFavorite(_ url: URL) {
         customFavorites.removeAll { $0.standardizedFileURL == url.standardizedFileURL }
         UserDefaults.standard.set(customFavorites.map(\.path), forKey: "customFavoritePaths")
+        favoriteViewPreferences.removeValue(forKey: url.standardizedFileURL.path)
+        persistFavoriteViewPreferences()
+    }
+
+    func navigateToFavorite(_ url: URL) {
+        let candidate = url.standardizedFileURL
+        navigate(to: candidate)
+        if let preference = favoriteViewPreferences[candidate.path] {
+            applyViewPreference(preference)
+        }
+    }
+
+    func updateFavoriteView(_ url: URL) {
+        let candidate = url.standardizedFileURL
+        guard customFavorites.contains(candidate) else { return }
+        favoriteViewPreferences[candidate.path] = currentViewPreference()
+        persistFavoriteViewPreferences()
+    }
+
+    func favoriteHasSavedView(_ url: URL) -> Bool {
+        favoriteViewPreferences[url.standardizedFileURL.path] != nil
+    }
+
+    private func persistFavoriteViewPreferences() {
+        guard let data = try? JSONEncoder().encode(favoriteViewPreferences) else { return }
+        UserDefaults.standard.set(data, forKey: "favoriteViewPreferences")
+    }
+
+    private func applyViewPreference(_ preference: FolderViewPreference) {
+        viewMode = FileViewMode(rawValue: preference.viewMode) ?? .list
+        showsKindColumn = preference.showsKind
+        showsSizeColumn = preference.showsSize
+        showsModifiedColumn = preference.showsModified
+        let restoredSort = zip(preference.sortFields, preference.sortAscending).compactMap { field, ascending in
+            SortField.allCases.first { $0.rawValue == field }
+                .map { SortCriterion(field: $0, ascending: ascending) }
+        }
+        if !restoredSort.isEmpty { sortCriteria = restoredSort }
     }
 
     private func recordRecentServer(_ url: URL) {

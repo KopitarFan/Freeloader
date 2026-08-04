@@ -12,6 +12,8 @@ struct FileListView: View {
     @State private var marqueeBaseSelection: Set<URL> = []
     @State private var isMarqueeSelecting = false
     @State private var marqueeAddsToSelection = false
+    @State private var imageResizeURLs: [URL] = []
+    @State private var showsImageResize = false
 
     private static let byteFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter()
@@ -50,6 +52,10 @@ struct FileListView: View {
         }
         .onChange(of: browser.selection) { _, _ in
             browser.requestAddressBlur()
+        }
+        .sheet(isPresented: $showsImageResize) {
+            ImageResizeView(urls: imageResizeURLs)
+                .environmentObject(browser)
         }
     }
 
@@ -580,6 +586,28 @@ struct FileListView: View {
             }
         }
         ShareLink(items: browser.selection.isEmpty ? [item.url] : Array(browser.selection))
+        if item.isImage {
+            Menu("Image Actions") {
+                Button("Rotate Left") {
+                    performImageAction(item) { try ImageActionService.rotate($0, direction: .left) }
+                }
+                Button("Rotate Right") {
+                    performImageAction(item) { try ImageActionService.rotate($0, direction: .right) }
+                }
+                Button("Resize Copies…") {
+                    imageResizeURLs = selectedImages(including: item)
+                    showsImageResize = true
+                }
+                Menu("Convert Copies") {
+                    Button("PNG") {
+                        performImageAction(item) { try ImageActionService.convert($0, to: .png) }
+                    }
+                    Button("JPEG") {
+                        performImageAction(item) { try ImageActionService.convert($0, to: .jpeg) }
+                    }
+                }
+            }
+        }
         if item.isDirectory {
             Button("Open in Terminal") { TerminalService.open(at: item.url) }
         } else {
@@ -682,6 +710,28 @@ struct FileListView: View {
             ForEach(TemplateService.templates) { template in
                 Button(template.name) { browser.createFile(from: template) }
             }
+        }
+    }
+
+    private func selectedImages(including item: FileItem) -> [URL] {
+        if browser.selection.contains(item.url) {
+            let selected = browser.displayedItems
+                .filter { browser.selection.contains($0.url) && $0.isImage }
+                .map(\.url)
+            if !selected.isEmpty { return selected }
+        }
+        return [item.url]
+    }
+
+    private func performImageAction(
+        _ item: FileItem,
+        action: ([URL]) throws -> [URL]
+    ) {
+        do {
+            _ = try action(selectedImages(including: item))
+            browser.reload()
+        } catch {
+            browser.errorMessage = "Couldn’t process the image: \(error.localizedDescription)"
         }
     }
 }
