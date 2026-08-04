@@ -27,6 +27,10 @@
 		61B000000000000000000001 /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B000000000000000000002 /* GalleryView.swift */; };
 		61C000000000000000000001 /* ContactSheetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C000000000000000000002 /* ContactSheetService.swift */; };
 		61D000000000000000000001 /* PaneInteractionMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D000000000000000000002 /* PaneInteractionMonitor.swift */; };
+		61E000000000000000000001 /* WindowLayoutSizingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E000000000000000000002 /* WindowLayoutSizingView.swift */; };
+		61F000000000000000000001 /* WorkspaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F000000000000000000002 /* WorkspaceModels.swift */; };
+		620000000000000000000001 /* ImageActionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 620000000000000000000002 /* ImageActionService.swift */; };
+		621000000000000000000001 /* ImageResizeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 621000000000000000000002 /* ImageResizeView.swift */; };
 		61A000000000000000000001 /* FileDragPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A000000000000000000003 /* FileDragPayload.swift */; };
 		61A000000000000000000002 /* PaneFocusCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A000000000000000000004 /* PaneFocusCoordinator.swift */; };
 		6241DA3B04A2341054DD6145 /* BatchRenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3117D75F7396BB34460B1193 /* BatchRenameView.swift */; };
@@ -107,6 +111,10 @@
 		61B000000000000000000002 /* GalleryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GalleryView.swift; path = Views/GalleryView.swift; sourceTree = "<group>"; };
 		61C000000000000000000002 /* ContactSheetService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContactSheetService.swift; path = Services/ContactSheetService.swift; sourceTree = "<group>"; };
 		61D000000000000000000002 /* PaneInteractionMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PaneInteractionMonitor.swift; path = Views/PaneInteractionMonitor.swift; sourceTree = "<group>"; };
+		61E000000000000000000002 /* WindowLayoutSizingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WindowLayoutSizingView.swift; path = Views/WindowLayoutSizingView.swift; sourceTree = "<group>"; };
+		61F000000000000000000002 /* WorkspaceModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkspaceModels.swift; path = Models/WorkspaceModels.swift; sourceTree = "<group>"; };
+		620000000000000000000002 /* ImageActionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImageActionService.swift; path = Services/ImageActionService.swift; sourceTree = "<group>"; };
+		621000000000000000000002 /* ImageResizeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImageResizeView.swift; path = Views/ImageResizeView.swift; sourceTree = "<group>"; };
 		823A824CC9271C6B519F6476 /* ThumbnailService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ThumbnailService.swift; path = Services/ThumbnailService.swift; sourceTree = "<group>"; };
 		82F0E9359B719A2B4DD6C4E1 /* OperationJournal.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OperationJournal.swift; path = Services/OperationJournal.swift; sourceTree = "<group>"; };
 		84DDD263E0D2545937A3D14C /* DirectoryWatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DirectoryWatcher.swift; path = Services/DirectoryWatcher.swift; sourceTree = "<group>"; };
@@ -161,6 +169,7 @@
 				61A000000000000000000003 /* FileDragPayload.swift */,
 				B7C4CBB25FF07C226E4C0938 /* FileItem.swift */,
 				61A000000000000000000004 /* PaneFocusCoordinator.swift */,
+				61F000000000000000000002 /* WorkspaceModels.swift */,
 				05AF2BFD43AA7189F118459C /* NuFinderApp.swift */,
 				F456231B70A6125B1698233B /* ArchiveService.swift */,
 				F96728C61009AAABBDA015DB /* ChunkedFileCopier.swift */,
@@ -171,6 +180,7 @@
 				468ECC43BD5973AB8CFEBC4D /* FileOperationManager.swift */,
 				9AC3044D370B25B8CD471022 /* FolderSizeService.swift */,
 				2E75E7D1DEB7F8816AFDA7B9 /* GitStatusService.swift */,
+				620000000000000000000002 /* ImageActionService.swift */,
 				82F0E9359B719A2B4DD6C4E1 /* OperationJournal.swift */,
 				51885931321242811FEAD60D /* QuickLookService.swift */,
 				9127D4A6749E74B93D3B6EBA /* SpotlightSearchService.swift */,
@@ -191,8 +201,10 @@
 				5456484DA0DFD9625A9841CA /* FolderSizeText.swift */,
 				DE06B117679F5674C4B52610 /* GitStatusBadge.swift */,
 				C73AC840819CA65FE7FCF148 /* ImagePreviewPane.swift */,
+				621000000000000000000002 /* ImageResizeView.swift */,
 				519D592B4A8B06D67A4254D9 /* MetadataEditorView.swift */,
 				61D000000000000000000002 /* PaneInteractionMonitor.swift */,
+				61E000000000000000000002 /* WindowLayoutSizingView.swift */,
 				FAB3FA2B5C5E49022033C3A8 /* SearchBarView.swift */,
 				E963C14BBB824FDBE471FF29 /* SettingsView.swift */,
 				4219BE6DCF92BA0E6CEDECFE /* SidebarView.swift */,
@@ -368,6 +380,7 @@
 				61A000000000000000000001 /* FileDragPayload.swift in Sources */,
 				6ACD9251A79E4F3A949F65AA /* FileItem.swift in Sources */,
 				61A000000000000000000002 /* PaneFocusCoordinator.swift in Sources */,
+				61F000000000000000000001 /* WorkspaceModels.swift in Sources */,
 				B70C4A19998E78741613666C /* NuFinderApp.swift in Sources */,
 				C87085DE34BC6CF4BB9FCD9C /* ArchiveService.swift in Sources */,
 				5471B139D90D8E5690AC500A /* ChunkedFileCopier.swift in Sources */,
@@ -378,6 +391,7 @@
 				845A6F76F4F5FC66DF63F7EF /* FileOperationManager.swift in Sources */,
 				7D57C393570563DCF0B7D3FE /* FolderSizeService.swift in Sources */,
 				984F3994E66608B046D62D61 /* GitStatusService.swift in Sources */,
+				620000000000000000000001 /* ImageActionService.swift in Sources */,
 				5CC6B148FDE2D6145A35DA1C /* OperationJournal.swift in Sources */,
 				F3BF100D6A83A34997710A87 /* QuickLookService.swift in Sources */,
 				A3EDFDB96C1D5F26A85BF42F /* SpotlightSearchService.swift in Sources */,
@@ -397,7 +411,9 @@
 				C80A43899928565E18BC797A /* FolderSizeText.swift in Sources */,
 				D5778F29D13CFDDFFA73F706 /* GitStatusBadge.swift in Sources */,
 				61D000000000000000000001 /* PaneInteractionMonitor.swift in Sources */,
+				61E000000000000000000001 /* WindowLayoutSizingView.swift in Sources */,
 				7004476FA59E222DD709E6A6 /* ImagePreviewPane.swift in Sources */,
+				621000000000000000000001 /* ImageResizeView.swift in Sources */,
 				4521E517C92ED5989275E1D9 /* MetadataEditorView.swift in Sources */,
 				49DC8177CCF479116EF30B96 /* SearchBarView.swift in Sources */,
 				CCC160656D1244BD80BC9617 /* SettingsView.swift in Sources */,

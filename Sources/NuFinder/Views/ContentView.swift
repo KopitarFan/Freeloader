@@ -9,6 +9,7 @@ struct ContentView: View {
         initialURL: FileManager.default.homeDirectoryForCurrentUser,
         restoresSession: false
     )
+    @StateObject private var workspaceStore = WorkspaceStore()
     @AppStorage("showsSplitPane") private var showsSplitPane = false
     @AppStorage("toolbar.showsSplit") private var toolbarShowsSplit = true
     @AppStorage("toolbar.showsTerminal") private var toolbarShowsTerminal = true
@@ -16,27 +17,55 @@ struct ContentView: View {
     @AppStorage("gitStatusEnabled") private var gitStatusEnabled = false
     @State private var newFileName = "Untitled.txt"
     @State private var newFolderName = "untitled folder"
+    @State private var workspaceName = ""
+    @State private var showsSaveWorkspace = false
+    @State private var showsWorkspaceManager = false
+    @State private var didRestoreLaunchWorkspace = false
 
     var body: some View {
         NavigationSplitView {
             SidebarView()
                 .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 320)
         } detail: {
-            HStack(spacing: 0) {
-                browserPane(for: browser)
-                if showsSplitPane {
+            if showsSplitPane {
+                GeometryReader { geometry in
+                    let paneWidth = max(0, (geometry.size.width - 1) / 2)
+                    HStack(spacing: 0) {
+                        browserPane(for: browser)
+                            .frame(width: paneWidth)
+                            .clipped()
                     Divider()
                     browserPane(for: secondaryBrowser)
-                        .frame(minWidth: 320)
-                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                            .frame(width: paneWidth)
+                            .clipped()
+                    }
+                    .frame(width: geometry.size.width, height: geometry.size.height)
                 }
+                .transition(.opacity)
+            } else {
+                browserPane(for: browser)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
             }
-            .animation(.easeInOut(duration: 0.18), value: showsSplitPane)
+        }
+        .animation(.easeInOut(duration: 0.18), value: showsSplitPane)
+        .background {
+            WindowLayoutSizingView(
+                minimumContentSize: showsSplitPane
+                    ? CGSize(width: 1180, height: 560)
+                    : CGSize(width: 820, height: 480)
+            )
         }
         .toolbar { toolbar }
         .onAppear {
             paneFocus.activate(browser)
             NSApp.keyWindow?.representedURL = browser.currentURL
+            if !didRestoreLaunchWorkspace {
+                didRestoreLaunchWorkspace = true
+                if let workspace = workspaceStore.launchWorkspace {
+                    restore(workspace)
+                }
+            }
         }
         .onChange(of: browser.currentURL) { _, url in
             NSApp.keyWindow?.representedURL = url
@@ -60,6 +89,17 @@ struct ContentView: View {
             }
         } message: {
             Text("Create a folder in \(browser.currentURL.lastPathComponent).")
+        }
+        .alert("Save Workspace", isPresented: $showsSaveWorkspace) {
+            TextField("Workspace name", text: $workspaceName)
+            Button("Cancel", role: .cancel) {}
+            Button("Save") { saveWorkspace() }
+                .disabled(workspaceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        } message: {
+            Text("Save both panes, open tabs, view modes, and sorting.")
+        }
+        .sheet(isPresented: $showsWorkspaceManager) {
+            WorkspaceManagerView(store: workspaceStore, openWorkspace: restore)
         }
         .sheet(isPresented: $browser.showsBatchRenamePrompt) {
             BatchRenameView()
@@ -149,6 +189,7 @@ struct ContentView: View {
                 NSApp.keyWindow?.representedURL = model.currentURL
             }
         }
+        .clipped()
         .overlay {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .stroke(
@@ -202,6 +243,25 @@ struct ContentView: View {
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
         ToolbarItemGroup {
+            Menu {
+                if workspaceStore.workspaces.isEmpty {
+                    Text("No Saved Workspaces")
+                } else {
+                    ForEach(workspaceStore.workspaces) { workspace in
+                        Button(workspace.name) { restore(workspace) }
+                    }
+                    Divider()
+                }
+                Button("Save Current Workspace…") {
+                    workspaceName = ""
+                    showsSaveWorkspace = true
+                }
+                Button("Manage Workspaces…") { showsWorkspaceManager = true }
+            } label: {
+                FreeloaderToolbarIcon(systemName: "square.stack.3d.up")
+            }
+            .menuStyle(.borderlessButton)
+            .help("Workspaces")
             if toolbarShowsSplit {
                 Button {
                     showsSplitPane.toggle()
@@ -251,6 +311,102 @@ struct ContentView: View {
         paneFocus.activeBrowser ?? browser
     }
 
+    private func saveWorkspace() {
+        let name = workspaceName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        workspaceStore.save(SavedWorkspace(
+            id: UUID(),
+            name: name,
+            primary: browser.workspaceSnapshot(),
+            secondary: secondaryBrowser.workspaceSnapshot(),
+            splitPane: showsSplitPane,
+            showsTree: browser.showsTree,
+            updatedAt: Date()
+        ))
+    }
+
+    private func restore(_ workspace: SavedWorkspace) {
+        showsSplitPane = workspace.splitPane
+        browser.showsTree = workspace.showsTree
+        browser.restoreWorkspace(workspace.primary)
+        secondaryBrowser.restoreWorkspace(workspace.secondary)
+        paneFocus.activate(browser)
+    }
+
+}
+
+private struct WorkspaceManagerView: View {
+    @ObservedObject var store: WorkspaceStore
+    let openWorkspace: (SavedWorkspace) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var workspaceToRename: SavedWorkspace?
+    @State private var renamedWorkspace = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Workspaces").font(.title2.bold())
+                    Text("Return to a complete Freeloader layout in one click.")
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("Done") { dismiss() }.keyboardShortcut(.defaultAction)
+            }
+            if store.workspaces.isEmpty {
+                ContentUnavailableView(
+                    "No Saved Workspaces",
+                    systemImage: "square.stack.3d.up.slash",
+                    description: Text("Use the workspace toolbar menu to save your current layout.")
+                )
+            } else {
+                List(store.workspaces) { workspace in
+                    HStack(spacing: 12) {
+                        Image(systemName: workspace.splitPane ? "rectangle.split.2x1" : "rectangle")
+                            .foregroundStyle(.tint)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(workspace.name).fontWeight(.medium)
+                            Text(workspace.updatedAt, style: .date)
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Button {
+                            store.toggleLaunch(workspace)
+                        } label: {
+                            Image(systemName: store.launchWorkspaceID == workspace.id ? "play.circle.fill" : "play.circle")
+                        }
+                        .buttonStyle(.borderless)
+                        .help(store.launchWorkspaceID == workspace.id ? "Don’t Open at Launch" : "Open at Launch")
+                        Button("Open") {
+                            openWorkspace(workspace)
+                            dismiss()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .contextMenu {
+                        Button("Rename…") {
+                            workspaceToRename = workspace
+                            renamedWorkspace = workspace.name
+                        }
+                        Button("Delete", role: .destructive) { store.remove(workspace) }
+                    }
+                }
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 560, minHeight: 360)
+        .alert("Rename Workspace", isPresented: Binding(
+            get: { workspaceToRename != nil },
+            set: { if !$0 { workspaceToRename = nil } }
+        )) {
+            TextField("Workspace name", text: $renamedWorkspace)
+            Button("Cancel", role: .cancel) { workspaceToRename = nil }
+            Button("Rename") {
+                if let workspaceToRename { store.rename(workspaceToRename, to: renamedWorkspace) }
+                workspaceToRename = nil
+            }
+        }
+    }
 }
 
 private struct ConnectToServerView: View {

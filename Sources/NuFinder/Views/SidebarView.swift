@@ -37,7 +37,7 @@ struct SidebarView: View {
                         }
                         ForEach(browser.customFavorites, id: \.self) { url in
                             Button {
-                                browser.navigate(to: url)
+                                browser.navigateToFavorite(url)
                             } label: {
                                 Label(url.lastPathComponent, systemImage: "folder")
                                     .lineLimit(1)
@@ -49,6 +49,13 @@ struct SidebarView: View {
                                 scheduleSpringOpen(url, targeted: targeted)
                             }
                             .contextMenu {
+                                Button("Update Saved View") {
+                                    browser.updateFavoriteView(url)
+                                }
+                                if browser.favoriteHasSavedView(url) {
+                                    Label("View and Sort Saved", systemImage: "checkmark.circle")
+                                }
+                                Divider()
                                 Button("Remove from Favorites", role: .destructive) {
                                     browser.removeFavorite(url)
                                 }

@@ -10,7 +10,7 @@ the file-management features that should not require a subscription—or a
 support group.
 
 [Website](https://kopitarfan.github.io/Freeloader/) ·
-[Download Freeloader 0.2.10](https://github.com/KopitarFan/Freeloader/releases/download/v0.2.10/Freeloader-0.2.10.dmg)
+[Download Freeloader 0.3.0](https://github.com/KopitarFan/Freeloader/releases/download/v0.3.0/Freeloader-0.3.0.dmg)
 
 Support: [miguel@miguelrodriguez.net](mailto:miguel@miguelrodriguez.net)
 
@@ -28,6 +28,9 @@ Support: [miguel@miguelrodriguez.net](mailto:miguel@miguelrodriguez.net)
 - List, compact, and icon views
 - Spotlight-backed recursive search
 - SMB share mounting with recent servers and native macOS authentication
+- Named workspaces that restore panes, tabs, views, and sorting
+- Bookmarks that remember how each folder should be displayed
+- Non-destructive image rotation, resizing, and format conversion
 - Quick Look, Get Info, permissions, extended attributes, and checksums
 - Undo for supported create, rename, copy, move, and Trash operations
 - Embedded Finder Sync extension

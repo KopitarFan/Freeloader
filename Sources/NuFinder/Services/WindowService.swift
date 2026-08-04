@@ -8,13 +8,16 @@ enum WindowService {
     static func open(at url: URL) {
         let browser = BrowserModel(initialURL: url, restoresSession: false)
         let operations = FileOperationManager()
+        let paneFocus = PaneFocusCoordinator()
         let root = ContentView()
             .environmentObject(browser)
             .environmentObject(operations)
+            .environmentObject(paneFocus)
             .frame(minWidth: 820, minHeight: 480)
         let controller = NSHostingController(rootView: root)
         let window = NSWindow(contentViewController: controller)
-        window.setContentSize(NSSize(width: 1040, height: 680))
+        let splitPane = UserDefaults.standard.bool(forKey: "showsSplitPane")
+        window.setContentSize(NSSize(width: splitPane ? 1180 : 1040, height: 680))
         window.title = "Freeloader"
         window.representedURL = url
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]

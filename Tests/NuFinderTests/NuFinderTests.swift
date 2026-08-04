@@ -251,4 +251,48 @@ struct NuFinderTests {
         let pdf = try #require(PDFDocument(url: pdfURL))
         #expect(pdf.pageCount == 1)
     }
+
+    @Test func imageActionsCreateNonDestructiveCopies() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let original = root.appendingPathComponent("sample.png")
+        let fixture = try #require(Data(base64Encoded:
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        ))
+        try fixture.write(to: original)
+
+        let converted = try #require(ImageActionService.convert([original], to: .jpeg).first)
+        let rotated = try #require(ImageActionService.rotate([original], direction: .right).first)
+        let resized = try #require(ImageActionService.resize([original], maxWidth: 1, maxHeight: 1).first)
+
+        #expect(FileManager.default.fileExists(atPath: original.path))
+        #expect(FileManager.default.fileExists(atPath: converted.path))
+        #expect(FileManager.default.fileExists(atPath: rotated.path))
+        #expect(FileManager.default.fileExists(atPath: resized.path))
+        #expect(converted.pathExtension == "jpg")
+    }
+
+    @Test @MainActor func workspaceStorePersistsLayoutsAndLaunchChoice() throws {
+        let suiteName = "WorkspaceStoreTests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let snapshot = BrowserPaneSnapshot(
+            tabPaths: ["/tmp"], pinnedTabPaths: ["/tmp"], activeTabIndex: 0,
+            viewMode: "icons", showsKind: true, showsSize: false, showsModified: true,
+            sortFields: ["Name"], sortAscending: [true]
+        )
+        let workspace = SavedWorkspace(
+            id: UUID(), name: "Editing", primary: snapshot, secondary: snapshot,
+            splitPane: true, showsTree: true, updatedAt: Date()
+        )
+        let store = WorkspaceStore(defaults: defaults)
+        store.save(workspace)
+        store.toggleLaunch(workspace)
+
+        let restored = WorkspaceStore(defaults: defaults)
+        #expect(restored.workspaces.first?.name == "Editing")
+        #expect(restored.launchWorkspace?.splitPane == true)
+        #expect(restored.launchWorkspace?.primary.viewMode == "icons")
+    }
 }
