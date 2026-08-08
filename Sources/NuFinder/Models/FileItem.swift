@@ -95,3 +95,21 @@ enum SearchKindFilter: String, CaseIterable, Identifiable, Sendable {
     case folders = "Folders"
     var id: Self { self }
 }
+
+enum SearchScope: String, CaseIterable, Identifiable, Sendable {
+    case folder = "This Folder"
+    case subfolders = "Subfolders"
+    case home = "Home"
+    case computer = "This Mac"
+
+    var id: Self { self }
+
+    var systemImage: String {
+        switch self {
+        case .folder: "folder"
+        case .subfolders: "folder.badge.gearshape"
+        case .home: "house"
+        case .computer: "desktopcomputer"
+        }
+    }
+}

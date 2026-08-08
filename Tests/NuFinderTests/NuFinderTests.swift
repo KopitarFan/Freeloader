@@ -153,6 +153,27 @@ struct NuFinderTests {
         #expect(BrowserModel.matches("IMG_0042.HEIC", query: #"IMG_\d+\.HEIC"#, mode: .regex))
     }
 
+    @Test @MainActor func recursiveSearchFallsBackWhenSpotlightIsUnavailable() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let nested = root.appendingPathComponent("nested")
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        let expected = nested.appendingPathComponent("Definitely Here.txt")
+        try Data("search me".utf8).write(to: expected)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let browser = BrowserModel(initialURL: root, restoresSession: false)
+        browser.searchScope = .subfolders
+        browser.usesSpotlight = false
+        browser.searchText = "definitely"
+        browser.updateSearch()
+
+        for _ in 0..<100 where browser.isSearching {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        #expect(browser.searchResults.map { $0.url.resolvingSymlinksInPath() }
+            .contains(expected.resolvingSymlinksInPath()))
+    }
+
     @Test func rejectsMovingFolderIntoItsDescendant() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let child = root.appendingPathComponent("child")
