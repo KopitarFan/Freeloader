@@ -67,7 +67,15 @@ struct FileListView: View {
                     if browser.renameTarget == item.url {
                         RenameField(item: item)
                     } else {
-                        Text(item.name).lineLimit(1)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(item.name).lineLimit(1)
+                            if !browser.searchText.isEmpty && browser.searchScope != .folder {
+                                Text(resultLocation(for: item.url))
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                                    .lineLimit(1)
+                            }
+                        }
                     }
                     if browser.selection.contains(item.url) && isCut(item.url) {
                         Image(systemName: "scissors")
@@ -721,6 +729,22 @@ struct FileListView: View {
             if !selected.isEmpty { return selected }
         }
         return [item.url]
+    }
+
+    private func resultLocation(for url: URL) -> String {
+        let parent = url.deletingLastPathComponent()
+        let root: URL
+        switch browser.searchScope {
+        case .folder, .subfolders: root = browser.currentURL
+        case .home: root = FileManager.default.homeDirectoryForCurrentUser
+        case .computer: return parent.path
+        }
+        let rootPath = root.standardizedFileURL.path
+        let parentPath = parent.standardizedFileURL.path
+        guard parentPath.hasPrefix(rootPath) else { return parentPath }
+        let relative = String(parentPath.dropFirst(rootPath.count))
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return relative.isEmpty ? root.lastPathComponent : relative
     }
 
     private func performImageAction(

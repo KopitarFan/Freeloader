@@ -193,7 +193,9 @@ struct ContentView: View {
         .overlay {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .stroke(
-                    Color.accentColor.opacity(paneFocus.isActive(model) ? 0.85 : 0),
+                    Color.accentColor.opacity(
+                        showsSplitPane && paneFocus.isActive(model) ? 0.85 : 0
+                    ),
                     lineWidth: 2
                 )
                 .padding(1)

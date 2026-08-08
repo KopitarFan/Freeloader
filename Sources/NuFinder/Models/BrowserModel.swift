@@ -50,11 +50,14 @@ final class BrowserModel: ObservableObject {
     @Published var activeTabID: UUID
     @Published private(set) var recentLocations: [URL] = []
     @Published var addressFocusToken = UUID()
+    @Published var searchFocusToken = UUID()
     @Published var addressBlurToken = UUID()
     @Published private(set) var isEditingAddress = false
     @Published private(set) var isLoading = false
     @Published var searchText = ""
-    @Published var searchSubfolders = false
+    @Published var searchSubfolders = true
+    @Published var searchScope: SearchScope = .subfolders
+    @Published var searchContents = false
     @Published var searchMatchMode: SearchMatchMode = .contains
     @Published var searchKindFilter: SearchKindFilter = .all
     @Published var minimumSearchSizeMB = 0
@@ -389,9 +392,12 @@ final class BrowserModel: ObservableObject {
             searchResults = []
             return
         }
-        let root = currentURL
-        let recursive = searchSubfolders
+        let origin = currentURL
+        let scope = searchScope
+        let root = scope == .home ? FileManager.default.homeDirectoryForCurrentUser : currentURL
+        let recursive = scope != .folder
         let mode = searchMatchMode
+        let searchesContents = searchContents
         let kindFilter = searchKindFilter
         let minimumBytes = Int64(minimumSearchSizeMB) * 1_000_000
         let days = modifiedWithinDays
@@ -402,14 +408,20 @@ final class BrowserModel: ObservableObject {
             guard !Task.isCancelled else { return }
             let spotlightURLs: [URL]?
             if recursive && self?.usesSpotlight == true && mode == .contains {
-                spotlightURLs = await self?.spotlight.search(name: query, in: root)
+                spotlightURLs = await self?.spotlight.search(
+                    query: query,
+                    root: root,
+                    scope: scope,
+                    searchesContents: searchesContents
+                )
             } else {
                 spotlightURLs = nil
             }
             guard !Task.isCancelled else { return }
             let results = await Task.detached(priority: .userInitiated) {
                 let candidates: [FileItem]
-                if let spotlightURLs {
+                let usedSpotlightResults = spotlightURLs?.isEmpty == false
+                if let spotlightURLs, !spotlightURLs.isEmpty {
                     candidates = spotlightURLs.compactMap(FileItem.load)
                 } else if recursive {
                     let keys: [URLResourceKey] = [
@@ -417,7 +429,7 @@ final class BrowserModel: ObservableObject {
                         .creationDateKey, .localizedTypeDescriptionKey
                     ]
                     let enumerator = FileManager.default.enumerator(
-                        at: root,
+                        at: scope == .computer ? FileManager.default.homeDirectoryForCurrentUser : root,
                         includingPropertiesForKeys: keys,
                         options: [.skipsHiddenFiles, .skipsPackageDescendants]
                     )
@@ -434,7 +446,9 @@ final class BrowserModel: ObservableObject {
                     ? Calendar.current.date(byAdding: .day, value: -days, to: Date())
                     : nil
                 return candidates.filter { item in
-                    guard Self.matches(item.name, query: query, mode: mode) else { return false }
+                    if !searchesContents || !usedSpotlightResults {
+                        guard Self.matches(item.name, query: query, mode: mode) else { return false }
+                    }
                     if kindFilter == .files && item.isDirectory { return false }
                     if kindFilter == .folders && !item.isDirectory { return false }
                     if minimumBytes > 0 && !item.isDirectory && item.size < minimumBytes { return false }
@@ -442,7 +456,7 @@ final class BrowserModel: ObservableObject {
                     return true
                 }
             }.value
-            guard !Task.isCancelled, let self, self.currentURL == root else { return }
+            guard !Task.isCancelled, let self, self.currentURL == origin else { return }
             self.searchResults = self.sort(results)
             self.isSearching = false
         }
@@ -472,6 +486,10 @@ final class BrowserModel: ObservableObject {
     func removeSavedSearch(_ query: String) {
         savedSearches.removeAll { $0 == query }
         UserDefaults.standard.set(savedSearches, forKey: "savedSearches")
+    }
+
+    func requestSearchFocus() {
+        searchFocusToken = UUID()
     }
 
     func select(_ url: URL, command: Bool = false, shift: Bool = false) {

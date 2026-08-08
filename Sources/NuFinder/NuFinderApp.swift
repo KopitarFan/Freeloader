@@ -101,6 +101,15 @@ struct FreeloaderApp: App {
                     .keyboardShortcut("a")
                 Button("Invert Selection") { browser.invertSelection() }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
+                Divider()
+                Button("Find Files…") { activeBrowser.requestSearchFocus() }
+                    .keyboardShortcut("f")
+                Button("Clear Search") {
+                    activeBrowser.searchText = ""
+                    activeBrowser.updateSearch()
+                }
+                .keyboardShortcut("f", modifiers: [.command, .option])
+                .disabled(activeBrowser.searchText.isEmpty)
             }
             CommandGroup(after: .newItem) {
                 Button("New Window") { WindowService.open(at: browser.currentURL) }
@@ -153,7 +162,7 @@ struct FreeloaderApp: App {
                     .keyboardShortcut(.delete, modifiers: .command)
                     .disabled(browser.selection.isEmpty)
             }
-            CommandMenu("View") {
+            CommandGroup(after: .toolbar) {
                 Toggle("Folder Tree in Sidebar", isOn: $browser.showsTree)
                 Picker("View Mode", selection: $browser.viewMode) {
                     ForEach(FileViewMode.allCases) { mode in

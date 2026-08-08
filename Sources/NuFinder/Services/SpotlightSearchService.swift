@@ -6,17 +6,36 @@ final class SpotlightSearchService {
     private var observer: NSObjectProtocol?
     private var continuation: CheckedContinuation<[URL], Never>?
 
-    func search(name: String, in root: URL) async -> [URL] {
+    func search(
+        query searchText: String,
+        root: URL,
+        scope: SearchScope,
+        searchesContents: Bool
+    ) async -> [URL] {
         cancel()
         return await withCheckedContinuation { continuation in
             self.continuation = continuation
             let query = NSMetadataQuery()
-            query.searchScopes = [root]
-            query.predicate = NSPredicate(
+            query.searchScopes = scope == .computer
+                ? [NSMetadataQueryLocalComputerScope]
+                : [scope == .home ? FileManager.default.homeDirectoryForCurrentUser : root]
+            let namePredicate = NSPredicate(
                 format: "%K CONTAINS[cd] %@",
                 NSMetadataItemFSNameKey,
-                name
+                searchText
             )
+            if searchesContents {
+                let contentPredicate = NSPredicate(
+                    format: "%K CONTAINS[cd] %@",
+                    NSMetadataItemTextContentKey,
+                    searchText
+                )
+                query.predicate = NSCompoundPredicate(
+                    orPredicateWithSubpredicates: [namePredicate, contentPredicate]
+                )
+            } else {
+                query.predicate = namePredicate
+            }
             query.sortDescriptors = [
                 NSSortDescriptor(key: NSMetadataItemFSNameKey, ascending: true)
             ]
