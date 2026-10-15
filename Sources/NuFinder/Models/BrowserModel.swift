@@ -3,6 +3,15 @@ import Foundation
 import NetFS
 import SwiftUI
 
+struct FavoriteLocation: Identifiable {
+    let url: URL
+    let title: String
+    let icon: String
+    let isBuiltIn: Bool
+
+    var id: URL { url }
+}
+
 struct BrowserTab: Identifiable, Equatable {
     let id: UUID
     var url: URL
@@ -46,6 +55,7 @@ final class BrowserModel: ObservableObject {
     @Published var sortCriteria = [SortCriterion(field: .name, ascending: true)]
     @Published private(set) var cutItems: Set<URL> = []
     @Published private(set) var customFavorites: [URL] = []
+    @Published private(set) var favoriteOrderPaths: [String] = []
     @Published private(set) var tabs: [BrowserTab] = []
     @Published var activeTabID: UUID
     @Published private(set) var recentLocations: [URL] = []
@@ -85,6 +95,7 @@ final class BrowserModel: ObservableObject {
     private let watcher = DirectoryWatcher()
     private var undoActions: [() -> Void] = []
     private let persistsSession: Bool
+    private let defaults: UserDefaults
     private var closedTabs: [BrowserTab] = []
     private var reloadTask: Task<Void, Never>?
     private var searchTask: Task<Void, Never>?
@@ -95,14 +106,15 @@ final class BrowserModel: ObservableObject {
     var canUndo: Bool { !undoActions.isEmpty }
     var canReopenClosedTab: Bool { !closedTabs.isEmpty }
 
-    init(initialURL: URL? = nil, restoresSession: Bool = true) {
+    init(initialURL: URL? = nil, restoresSession: Bool = true, defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         persistsSession = restoresSession
         let home = FileManager.default.homeDirectoryForCurrentUser
-        let restored = restoresSession ? UserDefaults.standard.stringArray(forKey: "openTabPaths")?
+        let restored = restoresSession ? defaults.stringArray(forKey: "openTabPaths")?
             .filter(Self.isRestorableSessionPath)
             .map(Self.storedDirectoryURL) ?? [] : []
         let initialURLs = initialURL.map { [$0] } ?? (restored.isEmpty ? [home] : restored)
-        let pinnedPaths = Set(UserDefaults.standard.stringArray(forKey: "pinnedTabPaths") ?? [])
+        let pinnedPaths = Set(defaults.stringArray(forKey: "pinnedTabPaths") ?? [])
         let initialTabs = initialURLs.map {
             BrowserTab(
                 id: UUID(),
@@ -113,20 +125,21 @@ final class BrowserModel: ObservableObject {
             )
         }
         let restoredActiveIndex = restoresSession
-            ? min(UserDefaults.standard.integer(forKey: "activeTabIndex"), initialTabs.count - 1)
+            ? min(defaults.integer(forKey: "activeTabIndex"), initialTabs.count - 1)
             : 0
         tabs = initialTabs
         activeTabID = initialTabs[restoredActiveIndex].id
         currentURL = initialTabs[restoredActiveIndex].url
         history = initialTabs[restoredActiveIndex].history
         historyIndex = initialTabs[restoredActiveIndex].historyIndex
-        recentLocations = UserDefaults.standard.stringArray(forKey: "recentLocationPaths")?
+        recentLocations = defaults.stringArray(forKey: "recentLocationPaths")?
             .map(Self.storedDirectoryURL) ?? []
-        savedSearches = UserDefaults.standard.stringArray(forKey: "savedSearches") ?? []
-        recentServers = UserDefaults.standard.stringArray(forKey: "recentSMBServers") ?? []
-        customFavorites = UserDefaults.standard.stringArray(forKey: "customFavoritePaths")?
+        savedSearches = defaults.stringArray(forKey: "savedSearches") ?? []
+        recentServers = defaults.stringArray(forKey: "recentSMBServers") ?? []
+        customFavorites = defaults.stringArray(forKey: "customFavoritePaths")?
             .map(Self.storedDirectoryURL) ?? []
-        if let data = UserDefaults.standard.data(forKey: "favoriteViewPreferences"),
+        favoriteOrderPaths = defaults.stringArray(forKey: "favoriteOrderPaths") ?? []
+        if let data = defaults.data(forKey: "favoriteViewPreferences"),
            let decoded = try? JSONDecoder().decode([String: FolderViewPreference].self, from: data) {
             favoriteViewPreferences = decoded
         }
@@ -356,10 +369,10 @@ final class BrowserModel: ObservableObject {
                 Result {
                     let urls = try FileManager.default.contentsOfDirectory(
                         at: directory,
-                        includingPropertiesForKeys: [
-                            .isDirectoryKey, .fileSizeKey, .contentModificationDateKey,
-                            .creationDateKey, .localizedTypeDescriptionKey
-                        ],
+                        // Fetch metadata per entry in FileItem.load instead. Bulk
+                        // prefetching can fail the entire listing when a virtual
+                        // filesystem entry (such as OrbStack) is unavailable.
+                        includingPropertiesForKeys: [],
                         options: includesHidden ? [] : [.skipsHiddenFiles]
                     )
                     return urls.compactMap(FileItem.load)
@@ -480,12 +493,12 @@ final class BrowserModel: ObservableObject {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty, !savedSearches.contains(query) else { return }
         savedSearches.insert(query, at: 0)
-        UserDefaults.standard.set(savedSearches, forKey: "savedSearches")
+        defaults.set(savedSearches, forKey: "savedSearches")
     }
 
     func removeSavedSearch(_ query: String) {
         savedSearches.removeAll { $0 == query }
-        UserDefaults.standard.set(savedSearches, forKey: "savedSearches")
+        defaults.set(savedSearches, forKey: "savedSearches")
     }
 
     func requestSearchFocus() {
@@ -1028,12 +1041,12 @@ final class BrowserModel: ObservableObject {
 
     private func persistTabs() {
         guard persistsSession else { return }
-        UserDefaults.standard.set(tabs.map { $0.url.path }, forKey: "openTabPaths")
-        UserDefaults.standard.set(
+        defaults.set(tabs.map { $0.url.path }, forKey: "openTabPaths")
+        defaults.set(
             tabs.filter(\.isPinned).map { $0.url.path },
             forKey: "pinnedTabPaths"
         )
-        UserDefaults.standard.set(
+        defaults.set(
             tabs.firstIndex(where: { $0.id == activeTabID }) ?? 0,
             forKey: "activeTabIndex"
         )
@@ -1043,13 +1056,13 @@ final class BrowserModel: ObservableObject {
         recentLocations.removeAll { $0.standardizedFileURL == url.standardizedFileURL }
         recentLocations.insert(url, at: 0)
         if recentLocations.count > 15 { recentLocations.removeLast(recentLocations.count - 15) }
-        UserDefaults.standard.set(recentLocations.map(\.path), forKey: "recentLocationPaths")
+        defaults.set(recentLocations.map(\.path), forKey: "recentLocationPaths")
     }
 
     func saveViewPreferences() {
         let preference = currentViewPreference()
         guard let data = try? JSONEncoder().encode(preference) else { return }
-        UserDefaults.standard.set(data, forKey: viewPreferenceKey(for: currentURL))
+        defaults.set(data, forKey: viewPreferenceKey(for: currentURL))
     }
 
     private func currentViewPreference() -> FolderViewPreference {
@@ -1064,7 +1077,7 @@ final class BrowserModel: ObservableObject {
     }
 
     private func restoreViewPreferences(for url: URL) {
-        guard let data = UserDefaults.standard.data(forKey: viewPreferenceKey(for: url)),
+        guard let data = defaults.data(forKey: viewPreferenceKey(for: url)),
               let preference = try? JSONDecoder().decode(FolderViewPreference.self, from: data) else {
             return
         }
@@ -1183,6 +1196,45 @@ final class BrowserModel: ObservableObject {
         return results
     }
 
+    var favorites: [FavoriteLocation] {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let builtIn = [
+            FavoriteLocation(url: home, title: "Home", icon: "house", isBuiltIn: true),
+            FavoriteLocation(url: home.appendingPathComponent("Desktop"), title: "Desktop",
+                             icon: "menubar.dock.rectangle", isBuiltIn: true),
+            FavoriteLocation(url: home.appendingPathComponent("Documents"), title: "Documents",
+                             icon: "doc", isBuiltIn: true),
+            FavoriteLocation(url: home.appendingPathComponent("Downloads"), title: "Downloads",
+                             icon: "arrow.down.circle", isBuiltIn: true)
+        ]
+        let locations = builtIn + customFavorites.map {
+            FavoriteLocation(url: $0, title: $0.lastPathComponent, icon: "folder", isBuiltIn: false)
+        }
+        var remaining = locations
+        var ordered: [FavoriteLocation] = []
+        for path in favoriteOrderPaths {
+            if let index = remaining.firstIndex(where: { $0.url.standardizedFileURL.path == path }) {
+                ordered.append(remaining.remove(at: index))
+            }
+        }
+        return ordered + remaining
+    }
+
+    func moveFavorites(from source: IndexSet, to destination: Int) {
+        var ordered = favorites
+        guard source.allSatisfy({ ordered.indices.contains($0) }),
+              (0...ordered.count).contains(destination) else { return }
+        ordered.move(fromOffsets: source, toOffset: destination)
+        favoriteOrderPaths = ordered.map { $0.url.standardizedFileURL.path }
+        defaults.set(favoriteOrderPaths, forKey: "favoriteOrderPaths")
+    }
+
+    func moveFavorite(_ url: URL, by offset: Int) {
+        guard let index = favorites.firstIndex(where: { $0.url.standardizedFileURL.path == url.standardizedFileURL.path }),
+              favorites.indices.contains(index + offset) else { return }
+        moveFavorites(from: IndexSet(integer: index), to: offset > 0 ? index + offset + 1 : index + offset)
+    }
+
     @discardableResult
     func addFavorite(_ url: URL) -> Bool {
         let candidate = url.standardizedFileURL
@@ -1202,7 +1254,7 @@ final class BrowserModel: ObservableObject {
         guard !builtIn.contains(candidate), !customFavorites.contains(candidate) else { return true }
 
         customFavorites.append(candidate)
-        UserDefaults.standard.set(customFavorites.map(\.path), forKey: "customFavoritePaths")
+        defaults.set(customFavorites.map(\.path), forKey: "customFavoritePaths")
         favoriteViewPreferences[candidate.path] = currentViewPreference()
         persistFavoriteViewPreferences()
         return true
@@ -1210,7 +1262,9 @@ final class BrowserModel: ObservableObject {
 
     func removeFavorite(_ url: URL) {
         customFavorites.removeAll { $0.standardizedFileURL == url.standardizedFileURL }
-        UserDefaults.standard.set(customFavorites.map(\.path), forKey: "customFavoritePaths")
+        defaults.set(customFavorites.map(\.path), forKey: "customFavoritePaths")
+        favoriteOrderPaths.removeAll { $0 == url.standardizedFileURL.path }
+        defaults.set(favoriteOrderPaths, forKey: "favoriteOrderPaths")
         favoriteViewPreferences.removeValue(forKey: url.standardizedFileURL.path)
         persistFavoriteViewPreferences()
     }
@@ -1236,7 +1290,7 @@ final class BrowserModel: ObservableObject {
 
     private func persistFavoriteViewPreferences() {
         guard let data = try? JSONEncoder().encode(favoriteViewPreferences) else { return }
-        UserDefaults.standard.set(data, forKey: "favoriteViewPreferences")
+        defaults.set(data, forKey: "favoriteViewPreferences")
     }
 
     private func applyViewPreference(_ preference: FolderViewPreference) {
@@ -1264,7 +1318,7 @@ final class BrowserModel: ObservableObject {
         if recentServers.count > 10 {
             recentServers.removeLast(recentServers.count - 10)
         }
-        UserDefaults.standard.set(recentServers, forKey: "recentSMBServers")
+        defaults.set(recentServers, forKey: "recentSMBServers")
     }
 }
 

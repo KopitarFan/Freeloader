@@ -11,6 +11,112 @@ private final class ByteCounter: @unchecked Sendable {
 }
 
 struct NuFinderTests {
+    @Test @MainActor func favoriteOrderIncludesBuiltInsAndPersistsAfterRelaunch() throws {
+        let suite = "FreeloaderTests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let browser = BrowserModel(initialURL: root, restoresSession: false, defaults: defaults)
+        #expect(browser.favorites.map(\.title) == ["Home", "Desktop", "Documents", "Downloads"])
+        #expect(browser.addFavorite(root))
+        #expect(browser.favoriteHasSavedView(root))
+        let original = browser.favorites.map(\.url)
+
+        browser.moveFavorites(from: IndexSet(integer: 4), to: 0)
+        #expect(browser.favorites.map(\.url) == [original[4]] + Array(original.prefix(4)))
+        browser.moveFavorite(original[0], by: 1)
+        let expected = [original[4], original[1], original[0], original[2], original[3]]
+        #expect(browser.favorites.map(\.url) == expected)
+        #expect(browser.customFavorites.map(\.path) == [root.path])
+        #expect(browser.favoriteHasSavedView(root))
+
+        let restored = BrowserModel(initialURL: root, restoresSession: false, defaults: defaults)
+        #expect(restored.favorites.map(\.url) == expected)
+        #expect(restored.favoriteHasSavedView(root))
+        restored.removeFavorite(root)
+        #expect(restored.favorites.map(\.url) == Array(expected.dropFirst()))
+        #expect(restored.addFavorite(root))
+        #expect(restored.favorites.last?.url.path == root.path)
+    }
+
+    @Test @MainActor func favoriteOrderMigratesExistingFavoritesAndHandlesMoveBoundaries() throws {
+        let suite = "FreeloaderTests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let first = root.appendingPathComponent("first")
+        let second = root.appendingPathComponent("second")
+        defaults.set([first.path, second.path], forKey: "customFavoritePaths")
+        let browser = BrowserModel(initialURL: FileManager.default.temporaryDirectory,
+                                   restoresSession: false, defaults: defaults)
+        let original = browser.favorites.map(\.url)
+        #expect(Array(original.suffix(2)).map(\.path) == [first.path, second.path])
+        browser.moveFavorite(original[0], by: -1)
+        browser.moveFavorite(second, by: 1)
+        #expect(browser.favorites.map(\.url) == original)
+
+        browser.moveFavorites(from: IndexSet([0, 1]), to: original.count)
+        #expect(browser.favorites.map(\.url) == Array(original.dropFirst(2)) + Array(original.prefix(2)))
+        browser.moveFavorites(from: IndexSet(integer: 100), to: 0)
+        #expect(browser.favorites.count == 6)
+    }
+
+    @Test @MainActor func reloadsFolderWithUnavailableSymlinkAcrossNavigation() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try Data("still visible".utf8).write(to: root.appendingPathComponent("note.txt"))
+        try Data().write(to: root.appendingPathComponent(".hidden"))
+        try FileManager.default.createSymbolicLink(
+            at: root.appendingPathComponent("OrbStack"),
+            withDestinationURL: root.appendingPathComponent("unavailable")
+        )
+
+        let browser = BrowserModel(initialURL: root, restoresSession: false)
+        // Exercise the reloads mentioned in issue #15: launch, opening and
+        // closing a tab, and submitting the address bar.
+        for action in 0..<4 {
+            switch action {
+            case 1: browser.newTab()
+            case 2: browser.closeTab(browser.activeTabID)
+            case 3: browser.navigateFromAddress()
+            default: break
+            }
+            for _ in 0..<100 where browser.isLoading {
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            #expect(!browser.isLoading)
+            #expect(browser.errorMessage == nil)
+            #expect(browser.items.contains { $0.name == "note.txt" })
+            #expect(!browser.items.contains { $0.name == ".hidden" })
+        }
+
+        browser.showsHiddenFiles = true
+        browser.reload()
+        for _ in 0..<100 where browser.isLoading {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        #expect(!browser.isLoading)
+        #expect(browser.items.contains { $0.name == ".hidden" })
+    }
+
+    @Test @MainActor func reloadReportsFailureForUnavailableParentFolder() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let browser = BrowserModel(initialURL: root, restoresSession: false)
+        try FileManager.default.removeItem(at: root)
+        browser.reload()
+
+        for _ in 0..<100 where browser.isLoading {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        #expect(!browser.isLoading)
+        #expect(browser.errorMessage != nil)
+    }
+
     @Test @MainActor func doesNotRestoreTransientMountedVolumeTabs() {
         #expect(!BrowserModel.isRestorableSessionPath("/Volumes"))
         #expect(!BrowserModel.isRestorableSessionPath("/Volumes/offline-share"))

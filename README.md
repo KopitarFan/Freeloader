@@ -10,7 +10,7 @@ the file-management features that should not require a subscription—or a
 support group.
 
 [Website](https://kopitarfan.github.io/Freeloader/) ·
-[Download Freeloader 0.3.1](https://github.com/KopitarFan/Freeloader/releases/download/v0.3.1/Freeloader-0.3.1.dmg)
+[Download Freeloader 0.3.2](https://github.com/KopitarFan/Freeloader/releases/download/v0.3.2/Freeloader-0.3.2.dmg)
 
 Support: [miguel@miguelrodriguez.net](mailto:miguel@miguelrodriguez.net)
 
@@ -24,6 +24,7 @@ Support: [miguel@miguelrodriguez.net](mailto:miguel@miguelrodriguez.net)
 - Detailed transfers with bytes, speed, progress, errors, pause, and cancel
 - Optional expandable folder tree
 - Drag and drop between the file pane, tree, and Favorites
+- Reorder Favorites by dragging, or use Move Up / Move Down in the context menu; the order is saved
 - Tabs with independent back and forward history
 - List, compact, and icon views
 - Scoped recursive search with Spotlight, file-content matching, filters, and a filesystem fallback
