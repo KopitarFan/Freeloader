@@ -61,13 +61,7 @@ struct NuFinderTests {
         #expect(browser.favorites.map(\.url) == Array(original.dropFirst(2)) + Array(original.prefix(2)))
         browser.moveFavorites(from: IndexSet(integer: 100), to: 0)
         #expect(browser.favorites.count == 6)
-        browser.moveFavorite(original[0], over: original[2])
-        #expect(browser.favorites.first?.url == original[0])
-        browser.moveFavorite(original[0], over: original[1])
-        #expect(browser.favorites.last?.url == original[0])
-        let reordered = browser.favorites.map(\.url)
-        browser.moveFavorite(root.appendingPathComponent("not-a-favorite"), over: original[1])
-        #expect(browser.favorites.map(\.url) == reordered)
+
     }
 
     @Test @MainActor func reloadsFolderWithUnavailableSymlinkAcrossNavigation() async throws {

@@ -24,7 +24,7 @@ Support: [miguel@miguelrodriguez.net](mailto:miguel@miguelrodriguez.net)
 - Detailed transfers with bytes, speed, progress, errors, pause, and cancel
 - Optional expandable folder tree
 - Drag and drop between the file pane, tree, and Favorites
-- Reorder Favorites by dragging their handles, or use Move Up / Move Down in the context menu; the order is saved
+- Reorder Favorites using Move Up / Move Down in the context menu; the order is saved
 - Tabs with independent back and forward history
 - List, compact, and icon views
 - Scoped recursive search with Spotlight, file-content matching, filters, and a filesystem fallback

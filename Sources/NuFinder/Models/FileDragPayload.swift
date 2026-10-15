@@ -31,17 +31,3 @@ extension UTType {
         exportedAs: "net.miguelrodriguez.freeloader.file-selection"
     )
 }
-
-struct FavoriteDragPayload: Codable, Transferable {
-    let path: String
-
-    static var transferRepresentation: some TransferRepresentation {
-        CodableRepresentation(contentType: .freeloaderFavorite)
-    }
-}
-
-extension UTType {
-    static let freeloaderFavorite = UTType(
-        exportedAs: "net.miguelrodriguez.freeloader.favorite"
-    )
-}
