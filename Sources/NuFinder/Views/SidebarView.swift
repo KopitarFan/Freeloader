@@ -7,57 +7,45 @@ struct SidebarView: View {
     @State private var volumes: [MountedVolume] = []
     @State private var pendingEject: MountedVolume?
 
-    private var builtInFavorites: [(String, String, URL)] {
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        return [
-            ("Home", "house", home),
-            ("Desktop", "menubar.dock.rectangle", home.appendingPathComponent("Desktop")),
-            ("Documents", "doc", home.appendingPathComponent("Documents")),
-            ("Downloads", "arrow.down.circle", home.appendingPathComponent("Downloads"))
-        ]
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
                 List {
                     Section("Favorites") {
-                        ForEach(builtInFavorites, id: \.2) { title, icon, url in
+                        ForEach(browser.favorites) { favorite in
                             Button {
-                                browser.navigate(to: url)
+                                browser.navigateToFavorite(favorite.url)
                             } label: {
-                                Label(title, systemImage: icon)
-                            }
-                            .buttonStyle(.plain)
-                            .dropDestination(for: URL.self) { urls, _ in
-                                moveDroppedItems(urls, to: url)
-                            } isTargeted: { targeted in
-                                scheduleSpringOpen(url, targeted: targeted)
-                            }
-                        }
-                        ForEach(browser.customFavorites, id: \.self) { url in
-                            Button {
-                                browser.navigateToFavorite(url)
-                            } label: {
-                                Label(url.lastPathComponent, systemImage: "folder")
+                                Label(favorite.title, systemImage: favorite.icon)
                                     .lineLimit(1)
                             }
                             .buttonStyle(.plain)
                             .dropDestination(for: URL.self) { urls, _ in
-                                moveDroppedItems(urls, to: url)
+                                moveDroppedItems(urls, to: favorite.url)
                             } isTargeted: { targeted in
-                                scheduleSpringOpen(url, targeted: targeted)
+                                scheduleSpringOpen(favorite.url, targeted: targeted)
                             }
                             .contextMenu {
-                                Button("Update Saved View") {
-                                    browser.updateFavoriteView(url)
+                                Button("Move Up", systemImage: "arrow.up") {
+                                    browser.moveFavorite(favorite.url, by: -1)
                                 }
-                                if browser.favoriteHasSavedView(url) {
-                                    Label("View and Sort Saved", systemImage: "checkmark.circle")
+                                .disabled(browser.favorites.first?.id == favorite.id)
+                                Button("Move Down", systemImage: "arrow.down") {
+                                    browser.moveFavorite(favorite.url, by: 1)
                                 }
-                                Divider()
-                                Button("Remove from Favorites", role: .destructive) {
-                                    browser.removeFavorite(url)
+                                .disabled(browser.favorites.last?.id == favorite.id)
+                                if !favorite.isBuiltIn {
+                                    Divider()
+                                    Button("Update Saved View") {
+                                        browser.updateFavoriteView(favorite.url)
+                                    }
+                                    if browser.favoriteHasSavedView(favorite.url) {
+                                        Label("View and Sort Saved", systemImage: "checkmark.circle")
+                                    }
+                                    Divider()
+                                    Button("Remove from Favorites", role: .destructive) {
+                                        browser.removeFavorite(favorite.url)
+                                    }
                                 }
                             }
                         }
