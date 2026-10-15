@@ -1235,6 +1235,15 @@ final class BrowserModel: ObservableObject {
         moveFavorites(from: IndexSet(integer: index), to: offset > 0 ? index + offset + 1 : index + offset)
     }
 
+    func moveFavorite(_ source: URL, over target: URL) {
+        let locations = favorites
+        guard let sourceIndex = locations.firstIndex(where: { $0.url.path == source.path }),
+              let targetIndex = locations.firstIndex(where: { $0.url.path == target.path }),
+              sourceIndex != targetIndex else { return }
+        moveFavorites(from: IndexSet(integer: sourceIndex),
+                      to: targetIndex > sourceIndex ? targetIndex + 1 : targetIndex)
+    }
+
     @discardableResult
     func addFavorite(_ url: URL) -> Bool {
         let candidate = url.standardizedFileURL

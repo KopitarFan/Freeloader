@@ -6,6 +6,7 @@ struct SidebarView: View {
     @State private var springOpenTask: Task<Void, Never>?
     @State private var volumes: [MountedVolume] = []
     @State private var pendingEject: MountedVolume?
+    @State private var favoriteReorderTarget: URL?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -13,17 +14,42 @@ struct SidebarView: View {
                 List {
                     Section("Favorites") {
                         ForEach(browser.favorites) { favorite in
-                            Button {
-                                browser.navigateToFavorite(favorite.url)
-                            } label: {
-                                Label(favorite.title, systemImage: favorite.icon)
-                                    .lineLimit(1)
-                            }
-                            .buttonStyle(.plain)
-                            .dropDestination(for: URL.self) { urls, _ in
-                                moveDroppedItems(urls, to: favorite.url)
-                            } isTargeted: { targeted in
-                                scheduleSpringOpen(favorite.url, targeted: targeted)
+                            HStack(spacing: 4) {
+                                Button {
+                                    browser.navigateToFavorite(favorite.url)
+                                } label: {
+                                    Label(favorite.title, systemImage: favorite.icon)
+                                        .lineLimit(1)
+                                }
+                                .buttonStyle(.plain)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .dropDestination(for: URL.self) { urls, _ in
+                                    moveDroppedItems(urls, to: favorite.url)
+                                } isTargeted: { targeted in
+                                    scheduleSpringOpen(favorite.url, targeted: targeted)
+                                }
+                                Image(systemName: "line.3.horizontal")
+                                    .foregroundStyle(.secondary)
+                                    .padding(6)
+                                    .contentShape(Rectangle())
+                                    .background(
+                                        favoriteReorderTarget == favorite.url
+                                            ? Color.accentColor.opacity(0.15) : .clear,
+                                        in: RoundedRectangle(cornerRadius: 4)
+                                    )
+                                    .help("Drag onto another favorite’s handle to reorder")
+                                    .accessibilityLabel("Reorder \(favorite.title)")
+                                    .draggable(FavoriteDragPayload(path: favorite.url.path))
+                                    .dropDestination(for: FavoriteDragPayload.self) { payloads, _ in
+                                        guard let payload = payloads.first else { return false }
+                                        browser.moveFavorite(
+                                            BrowserModel.storedDirectoryURL(payload.path),
+                                            over: favorite.url
+                                        )
+                                        return true
+                                    } isTargeted: { targeted in
+                                        favoriteReorderTarget = targeted ? favorite.url : nil
+                                    }
                             }
                             .contextMenu {
                                 Button("Move Up", systemImage: "arrow.up") {
@@ -48,9 +74,6 @@ struct SidebarView: View {
                                     }
                                 }
                             }
-                        }
-                        .onMove { source, destination in
-                            browser.moveFavorites(from: source, to: destination)
                         }
                     }
                     .dropDestination(for: URL.self) { urls, _ in
